@@ -1,9 +1,10 @@
-from ..nodes import Exit
-from ..graph import get_node, get_edge
+from simulator.nodes import Exit
+from simulator.graph import get_node, get_edge
 
 class Proceed(object):
     def proceed(self, edge, instance):
-        print('Continuing along edge %s' % edge)
+        print('%s is continuing along edge %d' % \
+              (instance.get_name(), edge))
         target = get_edge(edge)['target']
         node = get_node(target)
         print(type(node).__name__)

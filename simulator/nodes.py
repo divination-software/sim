@@ -1,19 +1,42 @@
-from .mixins.proceed import Proceed
+from copy import copy
+# from simulator.mixins.proceed import Proceed
+from simulator.graph import get_node, get_edge
+
+class Proceed(object):
+    def proceed(self, edge, instance):
+        print('%s is continuing along edge %s' % \
+              (instance.get_name(), edge))
+        target = get_edge(edge)['target']
+        node = get_node(target)
+        if (type(node).__name__ == Exit.__name__):
+            node.run(instance)
+        else:
+            self.env.process(node.run(instance))
 
 class Source(Proceed, object):
     def __init__(self, env, Model, model_args, outbound_edge, delay):
         self.env = env
         self.Model = Model
-        self.model_args = model_args
         self.outbound_edge = outbound_edge
         self.delay = delay
+        self.model_args = model_args
+
+        self.created_count = 0
 
     def run(self):
         while True:
             print('Creating instance at %7.4f!' % self.env.now)
-            instance = self.Model(*self.model_args)
+
+            modified_model_args = copy(self.model_args)
+            modified_model_args['name'] = '%s %d' % \
+                (self.model_args['name'], self.created_count)
+
+            instance = self.Model(**modified_model_args)
             self.proceed(self.outbound_edge, instance)
+
             yield self.env.timeout(self.delay) # replace with delay_config
+
+            self.created_count += 1
 
 
 class Action(Proceed, object):
@@ -42,7 +65,8 @@ class Action(Proceed, object):
             self.to_be_seized = kwargs['to_be_released']
 
     def run(self, instance):
-        print('Performing action at %7.4f!' % self.env.now)
+        print('%s is performing action at %7.4f!' % \
+              (instance.get_name(), self.env.now))
         if self.will_seize:
             # TODO
             pass
@@ -55,7 +79,8 @@ class Action(Proceed, object):
             pass
 
         yield self.env.timeout(14)
-        print('Done performing action at %7.4f!' % self.env.now)
+        print('%s is done performing action at %7.4f!' % \
+              (instance.get_name(), self.env.now))
         self.proceed(self.outbound_edge, instance)
 
 
@@ -78,4 +103,5 @@ class Exit(object):
     def run(self, instance):
         # TODO: record statistics
 
-        print('Exiting at %7.4f!' % self.env.now)
+        print('%s is exiting at %7.4f!' % \
+              (instance.get_name(), self.env.now))

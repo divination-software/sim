@@ -3,10 +3,12 @@ from simulator.nodes import Source, Action, Exit
 from simulator.graph import add_node, add_edge
 
 class Basic(object):
-    def __init__(self, name):
-        self.name = name
-    def say_hello(self):
-        print('Hello, I am %s' % self.name)
+    def __init__(self, **kwargs):
+        if 'name' in kwargs:
+            self.name = kwargs['name']
+
+    def get_name(self):
+        return self.name
 
 if __name__ == '__main__':
     env = simpy.Environment()
