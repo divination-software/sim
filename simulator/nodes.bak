@@ -1,0 +1,78 @@
+from .mixins.proceed import Proceed
+
+class Source(Proceed, object):
+    def __init__(self, Model, model_args, outbound_edge, delay):
+        self.Model = Model
+        self.model_args = model_args
+        self.outbound_edge = outbound_edge
+        self.delay = delay
+
+    def run(self, env):
+        while True:
+            print('Creating instance at %7.4f!' % env.now)
+            instance = self.Model(*self.model_args)
+            self.proceed(env, self.outbound_edge, instance)
+            yield env.timeout(self.delay) # replace with delay_config
+
+
+class Action(Proceed, object):
+    def __init__(self, outbound_edge, **kwargs):
+        self.outbound_edge = outbound_edge
+        # Set defaults
+        self.will_seize = False
+        self.will_delay = False
+        self.will_release = False
+
+        # Override defaults
+        if 'will_seize' in kwargs and kwargs['will_seize'] is True:
+            self.will_seize = True
+            # TODO: throw error if kwargs['to_be_seized'] isn't defined
+            self.to_be_seized = kwargs['to_be_seized']
+
+        if 'will_delay' in kwargs and kwargs['will_delay'] is True:
+            self.will_delay = True
+            # TODO: customize delay duration. Make it a generator?
+            self.delay_duration = 10
+
+        if 'will_release' in kwargs and kwargs['will_release'] is True:
+            self.will_release = True
+            # TODO: throw error if kwargs['to_be_released'] isn't defined
+            self.to_be_seized = kwargs['to_be_released']
+
+    def run(self, env, instance):
+        print('Performing action at %7.4f!' % env.now)
+        if self.will_seize:
+            # TODO
+            pass
+
+        if self.will_delay:
+            env.timeout(self.delay_duration)
+
+        if self.will_release:
+            # TODO
+            pass
+
+        yield env.timeout(10)
+        print('Done performing action at %7.4f!' % env.now)
+        # self.proceed(env, self.outbound_edge, instance)
+
+
+class Decision(Proceed, object):
+    def __init__(self, branches):
+        self.branches = branches
+
+    def run(self, env, instance):
+        for condition, edge in self.branches:
+            if condition:
+                self.proceed(env, edge, instance)
+
+
+class Exit(object):
+    def __init__(self):
+        pass
+
+    def run(self, env, instance):
+        # TODO: record statistics
+
+        print('Exiting at %7.4f!' % env.now)
+        yield self.end.timeout(1)
