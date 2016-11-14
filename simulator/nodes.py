@@ -39,7 +39,7 @@ class Source(Proceed, object):
             self.created_count += 1
 
 
-class Action(Proceed, object):
+class Process(Proceed, object):
     def __init__(self, env, outbound_edge, **kwargs):
         self.env = env
         self.outbound_edge = outbound_edge
