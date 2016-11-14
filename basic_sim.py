@@ -1,5 +1,5 @@
 import simpy
-from simulator.nodes import Source, Action, Exit
+from simulator.nodes import Source, Process, Exit
 from simulator.graph import add_node, add_edge
 
 class Basic(object):
@@ -23,7 +23,7 @@ if __name__ == '__main__':
 
     NODES = {
         '2': Source(env, Basic, basic_args, '0', 10),
-        '3': Action(env, '1'),
+        '3': Process(env, '1'),
         '4': Exit(env),
     }
     for key in NODES:
