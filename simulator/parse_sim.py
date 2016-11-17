@@ -7,12 +7,17 @@ raises appropriate exceptions if the XML is not a valid simulation.
 
 import xml.etree.ElementTree as ET
 import re
-from .errors import SimParseError
+import simulator.errors
+from simulator.errors import SimParseError
 
 
 def parse_sim(xml_string):
     """Parse XML representing a simulation"""
-    root = ET.fromstring(xml_string)
+    root = None
+    try:
+        root = ET.fromstring(xml_string)
+    except:
+        raise SimParseError('Failed to parse XML into simulation.')
 
     if root.tag != 'mxGraphModel':
         raise SimParseError(
@@ -81,6 +86,12 @@ def parse_sim(xml_string):
                     nodes[cell.get('id')][attrib] = cell.get(attrib)
 
     for edge_id in edges:
+        # Edges must have a source and a target node
+        if edges[edge_id]['source'] is None:
+            raise SimParseError('All edges must have a source node.')
+        elif edges[edge_id]['target'] is None:
+            raise SimParseError('All edges must have a target node.')
+
         edge_source_id = edges[edge_id]['source']
         if 'outbound_edges' in nodes[edge_source_id]:
             nodes[edge_source_id]['outbound_edges'].append(
@@ -96,55 +107,55 @@ def parse_sim(xml_string):
 
     # A simulation must have edges and nodes
     if not edges:
-        raise SimParseError('Invalid Simulation: There are no edges.')
+        raise SimParseError('There are no edges.')
     if not nodes:
-        raise SimParseError('Invalid Simulation: There are no nodes.')
+        raise SimParseError('There are no nodes.')
 
     # A simulation must have at least one exit
     if len(node_ids['exit']) < 1:
-        raise SimParseError('Invalid Simulation: No Exit.')
+        raise SimParseError('No Exit.')
 
     # A simulation must have at least one source
     if len(node_ids['source']) < 1:
-        raise SimParseError('Invalid Simulation: No Source.')
+        raise SimParseError('No Source.')
 
     for source_id in node_ids['source']:
         # Sources in the simulation must not have more than one outbound edge
         if len(get_outbound_edge_ids(source_id, edges)) > 1:
-            raise SimParseError('Invalid Simulation: Source %s has more than one \
+            raise SimParseError('Source %s has more than one \
                             outbound edge.' % source_id)
 
         # Sources in the simulation must have at least one outbound edge
         elif len(get_outbound_edge_ids(source_id, edges)) == 0:
-            raise SimParseError('Invalid Simulation: Source %s has no outbound \
+            raise SimParseError('Source %s has no outbound \
                             edge.' % source_id)
 
         # Paths leading away from a Source must all end at an Exit
         elif not paths_all_lead_to_an_exit(source_id, edges, nodes):
-            raise SimParseError('Invalid Simulation: Source %s has an outbound edge\
+            raise SimParseError('Source %s has an outbound edge\
                             which doesn\'t lead to an Exit.' % source_id)
 
     for exit_id in node_ids['exit']:
         # Sources in the simulation must not have any outbound edges
         if len(get_outbound_edge_ids(exit_id, edges)) > 0:
-            raise SimParseError('Invalid Simulation: Exit %s has outbound edge(s)'\
+            raise SimParseError('Exit %s has outbound edge(s)'\
                             % exit_id)
 
     for process_id in node_ids['process']:
         # Processes in the simulation must have one outbound edge
         if len(get_outbound_edge_ids(process_id, edges)) > 1:
-            raise SimParseError('Invalid Simulation: Process %s has outbound \
+            raise SimParseError('Process %s has outbound \
                             edge(s)' % process_id)
 
         # Processes in the simulation must have one outbound edge
         if len(get_outbound_edge_ids(process_id, edges)) == 0:
-            raise SimParseError('Invalid Simulation: Process %s has no outbound \
+            raise SimParseError('Process %s has no outbound \
                             edge(s)' % process_id)
 
     for decision_id in node_ids['decision']:
         # Processes in the simulation must have at least one outbound edge
         if len(get_outbound_edge_ids(decision_id, edges)) == 0:
-            raise SimParseError('Invalid Simulation: Decision %s has nooutbound \
+            raise SimParseError('Decision %s has nooutbound \
                             edges' % decision_id)
 
     return [nodes, edges]

@@ -1,8 +1,8 @@
 """Create and run a new simulation"""
 
 import simpy
-from simulator.nodes import Source, Process, Exit
-from simulator.graph import add_node, add_edge, get_nodes, get_edges
+from .nodes import Source, Process, Exit
+from .graph import add_node, add_edge, get_nodes, get_edges
 
 class Basic(object):
     """Simple class to pass through the simulation (as instance)."""
