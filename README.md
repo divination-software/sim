@@ -12,7 +12,21 @@
 1. run `conda create -n py3.3 python=3.3`
 1. run `source activate py3.3`
 
-# Set up development environment
+## Set up development environment
 
 1. Install requirements
 1. Install dependencies `pip install -r dependencies.txt`
+
+## Run Tests
+
+```sh
+# From the root of the repository
+python -m unittest
+```
+
+## Run Lint
+
+```sh
+# From the root of the repository
+python run_pylint.py
+```

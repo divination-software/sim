@@ -1,14 +1,15 @@
-import sys
-import inspect
+"""Simulation server"""
+
 from flask import Flask, request
 from simulator import Simulation
-from simulator.parse_sim import parse_sim
-from xml.etree import ElementTree as ET
+from simulator.build_sim import build_sim
+from simulator.errors import SimBuildError
 
-app = Flask(__name__)
+APP = Flask(__name__)
 
-@app.route('/', methods=['POST'])
-def hello_world():
+@APP.route('/', methods=['POST'])
+def run_simulation():
+    """Run a simulation and send the results back."""
     # Test content-type
     if request.content_type != 'application/json':
         return 'Request must have Content-Type of application/json', 400
@@ -21,28 +22,21 @@ def hello_world():
     # Extract nodes and edges from the provided XML so we can instantiate the
     # nodes
     try:
-        nodes, edges = parse_sim(json_body['simulation'])
+        nodes, edges = build_sim(json_body['simulation'])
 
         print(nodes)
         print(edges)
+    except SimBuildError as error:
+        return error.message, 400
     except:
-        return 'Value associated with "simulation" must be valid XML', 400
+        return 'Something went wrong when building or running your \
+            Simulation', 400
 
-    # A valid simulation has:
-    # - at lease one Exit and at least one Source nodes
-    # - a path of edges leading from the Source node to the Exit node
-    if not nodes and not edges:
-        return 'Invalid Simulation: Simulation is empty', 400
-    elif not nodes:
-        return 'Invalid Simulation: Simulation should contain at least one \
-                Source and one Exit', 400
-    elif not edges:
-        return 'Invalid Simulation: Simulation should contain edges', 200
-
-
-    # Simulation(json_body['simulation'])
+    # TODO: can we optimize this by moving the loop into Simulation's __init__?
+    for i in range(3):
+        Simulation(nodes, edges)
 
     return 'Some details!', 200
 
 if __name__ == '__main__':
-    app.run()
+    APP.run()

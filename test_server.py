@@ -1,8 +1,12 @@
-import server
+"""Test the Flask server which exposes the simulator."""
+
 import unittest
 import json
+import server
 
 class ServerTestCase(unittest.TestCase):
+    """Tests for the server."""
+
     def setUp(self):
         """Run before every test."""
         self.app = server.app.test_client()
@@ -11,7 +15,7 @@ class ServerTestCase(unittest.TestCase):
         """Run after every test."""
         pass
 
-    def test_root_should_error_without_proper_body(self):
+    def test_no_post_body(self):
         """Should respond with 400 if the POST has no body."""
         response = self.app.post('/')
         assert response.status_code == 400
@@ -21,7 +25,7 @@ class ServerTestCase(unittest.TestCase):
         response = self.app.post('/', content_type='plain/text')
         assert response.status_code == 400
 
-    def test_non_invalid_key_in_json_body(self):
+    def test_invalid_key_in_json_body(self):
         """Should respond with 400 if provided with invalid POST data."""
         bad_data = json.dumps({'someotherkey': 'Some other key value'})
         response = self.app.post('/',
