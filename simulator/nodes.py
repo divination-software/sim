@@ -1,6 +1,5 @@
 """Define the nodes which make up a simulation"""
 from copy import copy
-# from simulator.mixins.proceed import Proceed
 from simulator.graph import get_node, get_edge
 
 class Proceed(object):
@@ -48,9 +47,14 @@ class Source(Proceed, object):
 class Process(Proceed, object):
     """A node which performs a combination of seizing, delaying, and releasing.
 
-    Seizing: Claim a some quantity of a resource for the current instance
-    Delay: Delay the progress of an instance through the simulation
-    Release: Renounce the current instance's claim on some quantity of a resource
+    Seizing:
+        Claim a some quantity of a resource for the current instance
+
+    Delay:
+        Delay the progress of an instance through the simulation
+
+    Release:
+        Renounce the current instance's claim on some quantity of a resource
     """
     def __init__(self, env, outbound_edge, **kwargs):
         self.env = env

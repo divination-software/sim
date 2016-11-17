@@ -11,10 +11,6 @@ def add_edge(key, value):
     """Add a single key-value pair to EDGES."""
     EDGES[key] = value
 
-def overwrite_edges(edges):
-    """Overwrite EDGES with new data."""
-    EDGES = edges
-
 def get_node(key):
     """Retrieve a single node."""
     return NODES[key]

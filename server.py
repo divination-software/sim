@@ -2,12 +2,12 @@
 
 from flask import Flask, request
 from simulator import Simulation
-from simulator.parse_sim import parse_sim
-from simulator.errors import SimParseError
+from simulator.build_sim import build_sim
+from simulator.errors import SimBuildError
 
-app = Flask(__name__)
+APP = Flask(__name__)
 
-@app.route('/', methods=['POST'])
+@APP.route('/', methods=['POST'])
 def run_simulation():
     """Run a simulation and send the results back."""
     # Test content-type
@@ -22,14 +22,15 @@ def run_simulation():
     # Extract nodes and edges from the provided XML so we can instantiate the
     # nodes
     try:
-        nodes, edges = parse_sim(json_body['simulation'])
+        nodes, edges = build_sim(json_body['simulation'])
 
         print(nodes)
         print(edges)
-    except SimParseError as error:
+    except SimBuildError as error:
         return error.message, 400
     except:
-        return 'Invalid Simulation', 400
+        return 'Something went wrong when building or running your \
+            Simulation', 400
 
     # TODO: can we optimize this by moving the loop into Simulation's __init__?
     for i in range(3):
@@ -38,4 +39,4 @@ def run_simulation():
     return 'Some details!', 200
 
 if __name__ == '__main__':
-    app.run()
+    APP.run()
