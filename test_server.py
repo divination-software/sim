@@ -9,7 +9,7 @@ class ServerTestCase(unittest.TestCase):
 
     def setUp(self):
         """Run before every test."""
-        self.app = server.app.test_client()
+        self.app = server.APP.test_client()
 
     def tearDown(self):
         """Run after every test."""
