@@ -1,6 +1,7 @@
 """Create and run a new simulation"""
 
 import simpy
+import numpy as np
 from .nodes import Source, Process, Exit
 from .graph import add_node, add_edge, get_nodes, get_edges
 
@@ -17,38 +18,72 @@ class Basic(object):
 class Simulation(object):
     """Construct and run a simulation."""
     def __init__(self, nodes, edges):
-        env = simpy.Environment()
-        basic_args = {'name': 'Basic'}
+        self.graph = {
+            'nodes': nodes,
+            'edges': edges,
+        }
+        self.nodes = []
+        self.node_statistics = {}
 
-        sources = []
+    def run(self):
+        # TODO: can we optimize this by moving the loop into Simulation's __init__?
+        for run_id in range(3):
+            self.nodes = []
+            env = simpy.Environment()
+            basic_args = {'name': 'Basic'}
 
-        for node_id in nodes:
-            node = None
-            node_type = nodes[node_id]['type']
-            # TODO: generalize the way configuration is passed into the node
-            # constructors. Use kwargs and a config (dict) parameter?.
-            if node_type == 'source':
-                node = Source(
-                    env,
-                    Basic,
-                    basic_args,
-                    nodes[node_id]['outbound_edges'][0],
-                    int(nodes[node_id]['Delay']))
-                sources.append(node)
-            elif node_type == 'exit':
-                node = Exit(env)
-            elif node_type == 'process':
-                node = Process(
-                    env,
-                    nodes[node_id]['outbound_edges'][0],
-                    will_delay=True,
-                    delay_duration=int(nodes[node_id]['Delay']))
+            sources = []
 
-            add_node(node_id, node)
+            for node_id in self.graph['nodes']:
+                node = None
+                node_type = self.graph['nodes'][node_id]['type']
+                # TODO: generalize the way configuration is passed into the node
+                # constructors. Use kwargs and a config (dict) parameter?.
+                if node_type == 'source':
+                    node = Source(
+                        env,
+                        node_id,
+                        Basic,
+                        basic_args,
+                        self.graph['nodes'][node_id]['outbound_edges'][0],
+                        int(self.graph['nodes'][node_id]['Delay']))
+                    sources.append(node)
+                elif node_type == 'exit':
+                    node = Exit(
+                        env,
+                        node_id)
+                elif node_type == 'process':
+                    node = Process(
+                        env,
+                        node_id,
+                        self.graph['nodes'][node_id]['outbound_edges'][0],
+                        will_delay=True,
+                        delay_duration=int(self.graph['nodes'][node_id]['Delay']))
 
-        for edge_id in edges:
-            add_edge(edge_id, edges[edge_id])
+                add_node(node_id, node)
+                self.nodes.append(node)
 
-        for source in sources:
-            env.process(source.run())
-        env.run(until=50)
+            for edge_id in self.graph['edges']:
+                add_edge(edge_id, self.graph['edges'][edge_id])
+
+            for source in sources:
+                env.process(source.run())
+            env.run(until=5000)
+
+            for node in self.nodes:
+                if node.get_node_id() not in self.node_statistics:
+                    self.node_statistics[node.get_node_id()] = {
+                        'node_type': node.get_node_type(),
+                        'statistics': [node.get_statistics()]}
+                else:
+                    self.node_statistics[node.get_node_id()]['statistics'].append(
+                            node.get_statistics())
+
+        for node_id in self.node_statistics:
+            if self.node_statistics[node_id]['node_type'] == 'Source':
+                for run in self.node_statistics[node_id]['statistics']:
+                    created_at_times = np.array(run)
+                    print(np.diff(created_at_times))
+
+
+        return self.node_statistics

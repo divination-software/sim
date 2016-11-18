@@ -1,6 +1,7 @@
 """Simulation server"""
 
-from flask import Flask, request
+import json
+from flask import Flask, request, Response
 from simulator import Simulation
 from simulator.build_sim import build_sim
 from simulator.errors import SimBuildError
@@ -24,19 +25,18 @@ def run_simulation():
     try:
         nodes, edges = build_sim(json_body['simulation'])
 
-        print(nodes)
-        print(edges)
+        #print(nodes)
+        #print(edges)
     except SimBuildError as error:
         return error.message, 400
     except:
         return 'Something went wrong when building or running your \
             Simulation', 400
 
-    # TODO: can we optimize this by moving the loop into Simulation's __init__?
-    for i in range(3):
-        Simulation(nodes, edges)
+    sim = Simulation(nodes, edges)
+    statistics = sim.run()
 
-    return 'Some details!', 200
+    return Response(json.dumps(statistics), mimetype='application/json')
 
 if __name__ == '__main__':
     APP.run()

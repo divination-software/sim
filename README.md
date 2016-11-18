@@ -16,6 +16,11 @@
 
 1. Install requirements
 1. Install dependencies `pip install -r dependencies.txt`
+1. Export environment variables:
+  ```sh
+  export FLASK_APP=server.py
+  export FLASK_DEBUG=1
+  ```
 
 ## Run Tests
 
@@ -29,4 +34,11 @@ python -m unittest
 ```sh
 # From the root of the repository
 python run_pylint.py
+```
+
+## Start server
+
+```sh
+# From the root of the repository
+flask run
 ```
