@@ -1,13 +1,12 @@
 language: python
 python:
-  - "3.3"
+  - "3.5"
   # does not have headers provided, please ask https://launchpad.net/~pypy/+archive/ppa
   # maintainers to fix their pypy-dev package.
-  - "pypy3"
 install:
   - pip install -r dependencies.txt
 script:
   # Unit tests
  - python -m unittest
   # Lint
- - python run_pytest.py
+ - python run_pylint.py
