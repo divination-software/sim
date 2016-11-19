@@ -1,6 +1,6 @@
 # sim
 
-> Some description
+> Run arbitrary discrete event simulations by combining Nodes into a graph
 
 ## Requirements
 
@@ -30,9 +30,13 @@ python -m unittest
 python run_pylint.py
 ```
 
-## Start server
+## Run the Server
 
 ```sh
 # From the root of the repository
+python setup_db.py
+
 flask run
+
+# Run `python sim_worker.py` ever so often via cron or similar
 ```
