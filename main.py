@@ -4,13 +4,15 @@ import json
 import sqlite3
 from flask import Flask, request, Response
 
-APP = Flask(__name__)
+app = Flask(__name__)
 
-@APP.route('/', methods=['POST'])
+@app.route('/', methods=['POST'])
 def store_simulation():
     """Run a simulation and send the results back."""
     conn = sqlite3.connect('simulations.db')
     cursor = conn.cursor()
+
+    print(request.url)
 
     # Test content-type
     if request.content_type != 'application/json':
@@ -46,4 +48,4 @@ def store_simulation():
     return Response(json.dumps(response_content), mimetype='application/json')
 
 if __name__ == '__main__':
-    APP.run()
+    app.run(host='0.0.0.0')

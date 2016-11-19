@@ -12,7 +12,7 @@
 1. Install dependencies `pip install -r dependencies.txt`
 1. Export environment variables:
   ```sh
-  export FLASK_APP=server.py
+  export FLASK_APP=main.py
   export FLASK_DEBUG=1
   ```
 

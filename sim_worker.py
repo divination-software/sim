@@ -21,46 +21,47 @@ def run_oldest_sim():
                    FROM simulations
                    ORDER BY created_at DESC
                    LIMIT 1''')
-    sim_id, simulation, user_id, board_name = cursor.fetchone()
 
-    print(sim_id)
-    print(simulation)
-    print(user_id)
-    print(board_name)
+    record = cursor.fetchone()
+    if record is not None:
+        sim_id = record[0]
+        simulation = record[1]
+        user_id = record[2]
+        board_name = record[3]
 
-    error_message = None
-    try:
-        nodes, edges = build_sim(simulation)
-    except SimBuildError as error:
-        error_message = error.message
-    except:
-        error_message = 'Something went wrong when building your Simulation'
+        error_message = None
+        try:
+            nodes, edges = build_sim(simulation)
+        except SimBuildError as error:
+            error_message = error.message
+        except:
+            error_message = 'Something went wrong when building your Simulation'
 
-    url = config['Respond']['url']
+        url = config['Respond']['url']
 
-    if error_message is None:
-        sim = Simulation(nodes, edges)
-        statistics = sim.run()
+        if error_message is None:
+            sim = Simulation(nodes, edges)
+            statistics = sim.run()
 
-        response_data = {
-            'data': {
-                'statistics': statistics,
-                'id': sim_id
-            }}
+            response_data = {
+                'data': {
+                    'statistics': statistics,
+                    'id': sim_id
+                }}
 
-        if board_name is not None:
-            response_data['data']['board_name'] = board_name
+            if board_name is not None:
+                response_data['data']['board_name'] = board_name
 
-        requests.post(
-            url,
-            data=json.dumps(response_data))
-    else:
-        requests.post(
-            url,
-            data=json.dumps({'error': {'message': error_message}}))
+            requests.post(
+                url,
+                data=json.dumps(response_data))
+        else:
+            requests.post(
+                url,
+                data=json.dumps({'error': {'message': error_message}}))
 
-    cursor.execute('DELETE FROM simulations WHERE id = ?', (str(sim_id)))
-    conn.commit()
+        cursor.execute('DELETE FROM simulations WHERE id = ?', (str(sim_id)))
+        conn.commit()
     conn.close()
 
 if __name__ == '__main__':
