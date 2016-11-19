@@ -1,7 +1,8 @@
 """Create and run a new simulation"""
 
 import simpy
-import numpy as np
+import logging
+# import numpy as np
 from .nodes import Source, Process, Exit
 from .graph import add_node, add_edge, get_nodes, get_edges
 
@@ -79,11 +80,14 @@ class Simulation(object):
                     self.node_statistics[node.get_node_id()]['statistics'].append(
                             node.get_statistics())
 
+        return self.node_statistics
+
+'''
         for node_id in self.node_statistics:
             if self.node_statistics[node_id]['node_type'] == 'Source':
                 for run in self.node_statistics[node_id]['statistics']:
                     created_at_times = np.array(run)
                     print(np.diff(created_at_times))
+'''
 
 
-        return self.node_statistics

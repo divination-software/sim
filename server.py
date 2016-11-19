@@ -1,16 +1,17 @@
 """Simulation server"""
 
 import json
+import sqlite3
 from flask import Flask, request, Response
-from simulator import Simulation
-from simulator.build_sim import build_sim
-from simulator.errors import SimBuildError
 
 APP = Flask(__name__)
 
 @APP.route('/', methods=['POST'])
-def run_simulation():
+def store_simulation():
     """Run a simulation and send the results back."""
+    conn = sqlite3.connect('simulations.db')
+    cursor = conn.cursor()
+
     # Test content-type
     if request.content_type != 'application/json':
         return 'Request must have Content-Type of application/json', 400
@@ -19,24 +20,30 @@ def run_simulation():
     json_body = request.get_json()
     if 'simulation' not in json_body:
         return 'Request body must contain the key "simulation"', 400
+    if 'user_id' not in json_body:
+        return 'Request body must contain the key "user_id"', 400
 
-    # Extract nodes and edges from the provided XML so we can instantiate the
-    # nodes
-    try:
-        nodes, edges = build_sim(json_body['simulation'])
+    if 'board_name' in json_body:
+        sql = """
+            INSERT INTO simulations(simulation, user_id, board_name)
+            VALUES (?, ?, ?)"""
+        cursor.execute(sql, (
+            json_body['simulation'],
+            json_body['user_id'],
+            json_body['board_name']))
+    else:
+        sql = '''
+            INSERT INTO simulations(simulation, user_id)
+            VALUES (?, ?)'''
+        cursor.execute(sql, (
+            json_body['simulation'],
+            json_body['user_id']))
+    conn.commit()
+    conn.close()
 
-        #print(nodes)
-        #print(edges)
-    except SimBuildError as error:
-        return error.message, 400
-    except:
-        return 'Something went wrong when building or running your \
-            Simulation', 400
-
-    sim = Simulation(nodes, edges)
-    statistics = sim.run()
-
-    return Response(json.dumps(statistics), mimetype='application/json')
+    response_content = {
+        'message': 'Simulation received'}
+    return Response(json.dumps(response_content), mimetype='application/json')
 
 if __name__ == '__main__':
     APP.run()

@@ -1,16 +1,10 @@
 # sim
 
-> Some description
+> Run arbitrary discrete event simulations by combining Nodes into a graph
 
 ## Requirements
 
-1. Python 3.3 (installation via [miniconda](http://conda.pydata.org/miniconda.html) is very easy)
-
-### Install Python3.3 with Miniconda
-
-1. [Install Miniconda](http://conda.pydata.org/miniconda.html)
-1. run `conda create -n py3.3 python=3.3`
-1. run `source activate py3.3`
+1. Python 3.5
 
 ## Set up development environment
 
@@ -36,9 +30,13 @@ python -m unittest
 python run_pylint.py
 ```
 
-## Start server
+## Run the Server
 
 ```sh
 # From the root of the repository
+python setup_db.py
+
 flask run
+
+# Run `python sim_worker.py` ever so often via cron or similar
 ```
