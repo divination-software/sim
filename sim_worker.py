@@ -3,6 +3,7 @@
 import sqlite3
 import requests
 import json
+import configparser
 from simulator import Simulation
 from simulator.build_sim import build_sim
 from simulator.errors import SimBuildError
@@ -11,6 +12,9 @@ def run_oldest_sim():
     """Run the oldest simulation we have received and respond with the results."""
     conn = sqlite3.connect('simulations.db')
     cursor = conn.cursor()
+
+    config = configparser.ConfigParser()
+    config.read('config.ini')
 
     cursor.execute('''
                    SELECT id, simulation, user_id, board_name
@@ -32,7 +36,7 @@ def run_oldest_sim():
     except:
         error_message = 'Something went wrong when building your Simulation'
 
-    url = 'http://someurltobedetermined'
+    url = config['Respond']['url']
 
     if error_message is None:
         sim = Simulation(nodes, edges)
