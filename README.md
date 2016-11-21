@@ -16,6 +16,16 @@
   export FLASK_DEBUG=1
   ```
 
+## Prepare sim's docker image for local development
+
+1. Make sure that you have proper url information in config.ini file for development testing using container
+1. Go to the app's root folder using your cli
+1. Run this command to build the app's image:
+  ```sh
+  docker build -t divination-software/sim:dev .
+  ```
+1. Once you're done above step, you could continue to run the docker compose command from server app root directory
+
 ## Run Tests
 
 ```sh
