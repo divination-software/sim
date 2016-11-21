@@ -91,3 +91,7 @@ ENV/
 
 # Database
 simulations.db
+
+# Certificate and its key
+client-cert.pem
+client-key.pem
