@@ -1,37 +1,3 @@
-# FROM python:3.5
-# MAINTAINER divination-software
-
-# COPY . /app
-# WORKDIR /app
-
-# ENV HOME /app
-
-# # Install uwsgi Python web server
-# # RUN pip install uwsgi
-# RUN pip install -r dependencies.txt
-
-# EXPOSE 80
-# ENTRYPOINT ["uwsgi", "--http", "0.0.0.0:80", "--module", "server:APP", "--processes", "1", "--threads", "8"]
-# --------------------------------------------------------------------------
-# FROM tiangolo/uwsgi-nginx-flask
-# MAINTAINER divination-software
-
-# COPY . /app
-
-# # To enable HTTPS, we need to copy certs and a new nginx.conf
-# COPY ./nginx.conf /etc/nginx/conf.d/
-# COPY ./client-cert.pem /etc/ssl/
-# COPY ./client-key.pem /etc/ssl/
-
-# WORKDIR /app
-# ENV HOME /app
-
-# # Install uwsgi Python web server
-# RUN pip install -r dependencies.txt
-# RUN python setup_db.py
-
-# EXPOSE 443
-# --------------------------------------------------------------------------
 FROM python:3.5
 
 MAINTAINER divination-software
