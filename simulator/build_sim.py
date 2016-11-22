@@ -26,7 +26,213 @@ def test_xml(root):
         raise SimBuildError('Root must be <mxGraphModel>')
 
 def parse_sim(xml_string):
-    """Parse XML representing a simulation."""
+    """Parse XML representing a simulation.
+
+    Each node has different arguments which are required for its construction.
+    All arguments must be supplied as JSON-stringified strings.
+
+    Nodes
+    -----
+
+    Format:
+        <Node Type>
+            <Key> (<Required?>): <Type>
+                <Description>
+                <Example of properly-formatted argument>
+
+        Keys are case insensitive.
+
+    Source:
+        Delay (required): (see Delay)
+            The amount of time between entity births.
+
+            Ex: (see Delay)
+
+    Exit:
+        None
+
+    Process:
+        WillDelay (required): Boolean
+            Will the process force entities to delay before proceeding?
+
+            Ex: true || false
+
+        Delay (required if WillDelay is true): (see Delay)
+            Time between entity births
+
+            Ex: (see Delay)
+
+        WillRelease (required): Boolean
+            Will the process force entities to release one or more resources, if
+            the entity has any of those resources, before proceeding?
+
+            Ex: true || false
+
+        ToBeReleased (required if WillRelease is true): Object
+            The resources and amounts of each to be released by each entity.
+            Keys in the object are resource ids. Entities which don't possess
+            the resource(s) specified will pass through without error.
+
+            Currently supports releasing up to one of each type of available
+            resource for each entity.
+
+            Ex: {
+                "cashier": 1,
+                "pen": 1,
+            }
+
+        MustSeize (required if MaySeize is not present): JSON Stringified boolean
+            Will the process force entities to seize one or more resources
+            before proceeding? Entities will not proceed until they successfully
+            seize the specified resource(s).
+
+            Ex: true || false
+
+        MaySeize (required if MustSeize is not present): JSON Stringified boolean
+            Will the process have entities attempt to seize one or more
+            resources before proceeding? Entities will proceed regardless of
+            whether or not they obtain the resource(s).
+
+            Ex: true || false
+
+        ToBeSeized (required if May/MustSeize is true): JSON Stringified object
+            The resources and amounts of each to be seized by each entity. Keys
+            in the object are resource ids.
+
+            Currently supports seizing up to one of each type of available
+            resource for each entity.
+
+            Ex: {
+                "cashier": 1,
+                "pen": 1,
+            }
+
+    Decision:
+        Condition (required): (see Condition)
+            Branching condition for the decision. The entity will proceed along
+            the top branch if the condition resolves as true. It will continue
+            along the bottom branch if the condition resolves as false.
+
+            Ex: (see Condition)
+
+    Spread:
+        ProbabilityDistribution (required): JSON Stringified array
+            The probability of taking each branch available from the Spread, in
+            order from top-to-bottom.
+
+            Each probability is represented as an integer less than 100. These
+            integers must sum to 100.
+
+            Ex: [10, 30, 45, 15]
+
+    Modify:
+        Undocumented. Not implemented yet.
+
+    Spread:
+        Undocumented. Not implemented yet.
+
+    Other
+    -----
+
+    Format:
+        <Key> (<Required?>): <Type>
+            <Description>
+
+            <Nested Key> (<Required?>): <Type>
+                <Description>
+
+            <Example of properly-formatted arguments>
+
+        Keys are case insensitive.
+
+    Delay (see node for requirements): JSON Stringified object
+        A pair of key-values which identify which delay to use, and which
+        arguments to pass to it.
+
+        Type (required): String
+            Specify the type of delay to be applied. Must be one of the
+            following strings:
+                Constant: A constant delay
+                Triangle: A random delay based on a triangular distribution
+
+        Args (required): Object
+            Arguments for the delay. Each type of delay has its own required
+            arguments.
+
+            Constant:
+                Length (required): Integer
+                    The length of the delay as a constant integer.
+
+            Triangle:
+                Min (required): Integer
+                    The minimum delay length
+
+                Avg (required): Integer
+                    The average delay length. Must be greater than or equal to
+                    the minimum.
+
+                Max (required): Integer
+                    The maximum delay length. Must be greater than or equal to
+                    the average.
+
+        Ex: Constant
+            {
+                "type": "constant",
+                "args": {
+                    "length": 40,
+                }
+            }
+
+        Ex: Triangle
+            {
+                "type": "triangle",
+                "args": {
+                    "min": 10,
+                    "avg": 20,
+                    "max": 30,
+                }
+            }
+
+    Condition (see node for requrements): JSON Stringified object
+        A pair of key-values which identify which condition to use, and which
+        arguments to pass to it.
+
+        Type (required): String
+            Specify the type of condition to be applied. Must be one of the
+            following strings:
+                HasResource: Does the entity possess a resource?
+
+        Args (required): Object
+            Arguments for the condition. Each type of condition has its own
+            required arguments.
+
+            HasResource:
+                Resource (required): String
+                    The type of resource to test the entity for.
+
+                Amount (required): Integer
+                    The amount of the resource to test the entity for.
+
+                Comparator (required): String
+                    The method of comparison to use when testing the entity.
+                    Must be one of:
+                        "eq": Equal (==)
+                        "lt": Less than (<)
+                        "lteq": Less than or equal to (<=)
+                        "gt": Greater than (>)
+                        "gteq": Greater than or equal to(>=)
+
+        Ex: HasResource
+            {
+                "type": "hasresource",
+                "args": {
+                    "resource": "cashier",
+                    "amount": 1,
+                    "comparator": "gt",
+                }
+            }
+
+    """
 
     root = parse_xml(xml_string)
     test_xml(root)

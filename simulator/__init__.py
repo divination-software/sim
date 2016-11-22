@@ -17,7 +17,7 @@ class Basic(object):
         return self.name
 
 class Simulation(object):
-    """Construct and run a simulation."""
+    """Representation of a runnable simulation."""
     def __init__(self, nodes, edges):
         self.graph = {
             'nodes': nodes,
@@ -27,8 +27,8 @@ class Simulation(object):
         self.node_statistics = {}
 
     def run(self):
-        # TODO: can we optimize this by moving the loop into Simulation's __init__?
-        for run_id in range(3):
+        """Run the simulation and respond with statistics about the run."""
+        for _ in range(3):
             self.nodes = []
             env = simpy.Environment()
             basic_args = {'name': 'Basic'}

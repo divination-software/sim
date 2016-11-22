@@ -4,10 +4,10 @@ from simulator.mixins.proceed import Proceed
 from simulator.mixins.sim_node import SimNode
 from simulator.mixins.statistics import Statistics
 
-
 class Source(Proceed, Statistics, SimNode, object):
-    """A node which generates instances of a Model which are moved through the
-    simulation."""
+    """Generates entities, at some interval, which move through the simulation.
+    These entities represent various actors as defined by the user when they
+    build the simulation."""
     def __init__(self, env, node_id, Model, model_args, outbound_edge, delay):
         self.env = env
         self.node_id = node_id
@@ -36,7 +36,6 @@ class Source(Proceed, Statistics, SimNode, object):
             yield self.env.timeout(self.delay) # replace with delay_config
 
             self.created_count += 1
-
 
 class Process(Proceed, Statistics, SimNode, object):
     """A node which performs a combination of seizing, delaying, and releasing.
@@ -98,9 +97,8 @@ class Process(Proceed, Statistics, SimNode, object):
         self.record('arrive_and_depart', (arrival_time, self.env.now))
         self.proceed(self.outbound_edge, instance)
 
-
 class Decision(Proceed, Statistics, SimNode, object):
-    """A node which branches the simulation off in one or more directions based
+    """A node which branches the simulation off in one of two directions based
     on some condition."""
     def __init__(self, env, node_id, branches):
         self.env = env
@@ -114,10 +112,8 @@ class Decision(Proceed, Statistics, SimNode, object):
         # TODO
         pass
 
-
 class Exit(Statistics, SimNode, object):
-    """A node representing the end-of-the-line in a simulation. This node also
-    handles recording certain KPIs."""
+    """A node representing the end-of-the-line in a simulation."""
     def __init__(self, env, node_id):
         self.env = env
         self.node_id = node_id
@@ -130,3 +126,30 @@ class Exit(Statistics, SimNode, object):
 
         # print('%s is exiting at %7.4f!' % \
               # (instance.get_name(), self.env.now))
+
+class Spread(Proceed, Statistics, SimNode, object):
+    """Not implemented yet."""
+    def __init__(self, env, node_id, branches):
+        pass
+
+    def run(self, instance):
+        """Not implemented yet."""
+        pass
+
+class Modify(Proceed, Statistics, SimNode, object):
+    """Not implemented yet."""
+    def __init__(self, env, node_id, branches):
+        pass
+
+    def run(self, instance):
+        """Not implemented yet."""
+        pass
+
+class Record(Proceed, Statistics, SimNode, object):
+    """Not implemented yet."""
+    def __init__(self, env, node_id, branches):
+        pass
+
+    def run(self, instance):
+        """Not implemented yet."""
+        pass
