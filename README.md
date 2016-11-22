@@ -63,4 +63,7 @@ flask run
 
 Build documentation by running `pydoc -p 1234`.
 
-**Nodes:** http://localhost:1234/simulator.nodes.html
+**Quicklinks**
+* [Node Classes](http://localhost:1234/simulator.nodes.html)
+* [Simulation Parsing](http://localhost:1234/simulator.build_sim.html)
+
