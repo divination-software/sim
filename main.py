@@ -2,7 +2,6 @@
 
 import json
 import sqlite3
-import threading
 from sim_worker import run_oldest_sim
 from flask import Flask, request, Response
 
@@ -45,12 +44,10 @@ def store_simulation():
     conn.commit()
     conn.close()
 
-    threading.Thread(target=run_oldest_sim, args=(), kwargs={})
-
     response_content = {
         'message': 'Simulation received'}
     return Response(json.dumps(response_content), mimetype='application/json')
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8443)
-    
+
