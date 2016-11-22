@@ -95,6 +95,3 @@ simulations.db
 # Certificate and its key
 client-cert.pem
 client-key.pem
-
-# Generated when running pydoc
-webServerSettings/
