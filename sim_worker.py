@@ -38,6 +38,7 @@ def run_oldest_sim():
             error_message = 'Something went wrong when building your Simulation'
 
         url = config['Respond']['url']
+        headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
 
         if error_message is None:
             sim = Simulation(nodes, edges)
@@ -54,11 +55,13 @@ def run_oldest_sim():
 
             requests.post(
                 url,
+                headers=headers,
                 data=json.dumps(response_data),
                 verify=False)
         else:
             requests.post(
                 url,
+                headers=headers,
                 data=json.dumps({'error': {'message': error_message}}),
                 verify=False)
 
