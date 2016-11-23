@@ -39,6 +39,13 @@ COPY . /app
 COPY ./client-cert.pem /etc/ssl/
 COPY ./client-key.pem /etc/ssl/
 
+# Install cron
+RUN apt-get update && apt-get install -y cron && rm -rf /var/lib/apt/lists/*
+# Add crontab file in the cron directory
+ADD crontab /etc/cron.d/sim-worker-cron
+ # Give execution rights on the cron job
+RUN chmod 0644 /etc/cron.d/sim-worker-cron
+
 WORKDIR /app
 ENV HOME /app
 
@@ -48,4 +55,5 @@ RUN python setup_db.py
 
 EXPOSE 8443
 
-CMD ["/usr/bin/supervisord"]
+# Run the script on container startup
+CMD ["sh","./start.sh"]
