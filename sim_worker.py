@@ -47,7 +47,7 @@ def run_oldest_sim():
             response_data = {
                 'data': {
                     'statistics': statistics,
-                    'id': sim_id
+                    'user_id': user_id
                 }}
 
             if board_name is not None:
