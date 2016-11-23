@@ -45,8 +45,6 @@ RUN apt-get update && apt-get install -y cron && rm -rf /var/lib/apt/lists/*
 ADD crontab /etc/cron.d/sim-worker-cron
  # Give execution rights on the cron job
 RUN chmod 0644 /etc/cron.d/sim-worker-cron
- # Create the log file to be able to run tail
-RUN touch /var/log/cron.log
 
 WORKDIR /app
 ENV HOME /app
@@ -57,6 +55,5 @@ RUN python setup_db.py
 
 EXPOSE 8443
 
-# Run the command on container startup
-CMD service cron start 
-CMD ["/usr/bin/supervisord"]
+# Run the script on container startup
+CMD ["sh","./start.sh"]
