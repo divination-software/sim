@@ -54,11 +54,13 @@ def run_oldest_sim():
 
             requests.post(
                 url,
-                data=json.dumps(response_data))
+                data=json.dumps(response_data),
+                verify=False)
         else:
             requests.post(
                 url,
-                data=json.dumps({'error': {'message': error_message}}))
+                data=json.dumps({'error': {'message': error_message}}),
+                verify=False)
 
         cursor.execute('DELETE FROM simulations WHERE id = ?', (str(sim_id)))
         conn.commit()
