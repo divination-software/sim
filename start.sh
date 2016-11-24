@@ -1,3 +1,3 @@
 #!/bin/sh
-service cron start
+nohup sh ./run_sim_worker.sh > sim_worker.log &
 /usr/bin/supervisord

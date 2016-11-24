@@ -39,12 +39,8 @@ COPY . /app
 COPY ./client-cert.pem /etc/ssl/
 COPY ./client-key.pem /etc/ssl/
 
-# Install cron
-RUN apt-get update && apt-get install -y cron && rm -rf /var/lib/apt/lists/*
-# Add crontab file in the cron directory
-ADD crontab /etc/cron.d/sim-worker-cron
- # Give execution rights on the cron job
-RUN chmod 0644 /etc/cron.d/sim-worker-cron
+# Give execution rights to run sim_worker script
+RUN chmod +x /app/sim_worker.py
 
 WORKDIR /app
 ENV HOME /app
