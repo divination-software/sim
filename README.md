@@ -30,7 +30,7 @@
   ```
 1. Run this command to build the app's image:
   ```sh
-  docker build -t divination-software/sim:dev .
+  docker build -t divinationsoftware/sim .
   ```
 1. Once you're done above step, you could continue to run the docker compose command from server app root directory
 
