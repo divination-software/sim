@@ -38,6 +38,7 @@ def run_oldest_sim():
             error_message = 'Something went wrong when building your Simulation'
 
         url = config['Respond']['url']
+        headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
 
         if error_message is None:
             sim = Simulation(nodes, edges)
@@ -46,7 +47,7 @@ def run_oldest_sim():
             response_data = {
                 'data': {
                     'statistics': statistics,
-                    'id': sim_id
+                    'user_id': user_id
                 }}
 
             if board_name is not None:
@@ -54,11 +55,15 @@ def run_oldest_sim():
 
             requests.post(
                 url,
-                data=json.dumps(response_data))
+                headers=headers,
+                data=json.dumps(response_data),
+                verify=False)
         else:
             requests.post(
                 url,
-                data=json.dumps({'error': {'message': error_message}}))
+                headers=headers,
+                data=json.dumps({'error': {'message': error_message}}),
+                verify=False)
 
         cursor.execute('DELETE FROM simulations WHERE id = ?', (str(sim_id)))
         conn.commit()
