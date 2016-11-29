@@ -25,6 +25,56 @@ def test_xml(root):
     if root.tag != 'mxGraphModel':
         raise SimBuildError('Root must be <mxGraphModel>')
 
+def parse_metadata(metadata_object):
+    """Parse metadata information from the wrapper object"""
+    metadata = None
+    if metadata_object is not None:
+        metadata = {}
+        metadata_type = metadata_object.get('type')
+        delay_type = metadata_object.get('delayType')
+        min_value = metadata_object.get('min')
+        mid_value = metadata_object.get('mid')
+        max_value = metadata_object.get('max')
+        val_value = metadata_object.get('val')
+        decision_value = metadata_object.get('decision')
+
+        if metadata_type is not None:
+            metadata[metadata_type] = {}
+
+        if delay_type is not None:
+            metadata[metadata_type]['type'] = delay_type
+
+        # currently for decision type is hard coded
+        # TODO: update how to structure metadata for decision
+        if decision_value is not None:
+            metadata['decision'] = {'type': 'decision'}
+
+        if (delay_type is not None or
+                min_value is not None or
+                mid_value is not None or
+                max_value is not None or
+                val_value is not None):
+            metadata[metadata_type]['args'] = {}
+
+        if min_value is not None:
+            metadata[metadata_type]['args']['min'] = min_value
+
+        if mid_value is not None:
+            metadata[metadata_type]['args']['mid'] = mid_value
+
+        if max_value is not None:
+            metadata[metadata_type]['args']['max'] = max_value
+
+        if val_value is not None:
+            metadata[metadata_type]['args']['val'] = val_value
+
+        # TODO: update how to assign metadata for decision
+        if decision_value is not None:
+            metadata['decision'] = {'args': {}}
+            metadata['decision']['args']['val'] = decision_value
+
+    return metadata
+
 def parse_sim(xml_string):
     """Parse XML representing a simulation.
 
@@ -249,7 +299,7 @@ def parse_sim(xml_string):
     #       <mxCell></mxCell>
     #   </object>
     bare_cells = root.findall('./root/mxCell')
-    objects_wrapping_cells = root.findall('./root/object/mxCell/..')
+    wrapper_objects = root.findall('./root/object')
 
     # Nodes will have a style attribute in their <mxCell> tag which contains a
     # key-value pair of 'shape=?'. That shape is our indicator for which type of
@@ -281,20 +331,28 @@ def parse_sim(xml_string):
                     'target': cell.get('target'),
                     'source': cell.get('source')}
 
-    for cell in objects_wrapping_cells:
-        child = cell.find('mxCell')
-        matches = re.search('shape=([^;]+);', child.get('style'))
+    for wrapper_object in wrapper_objects:
+        cell = wrapper_object.find('mxCell')
+        metadata = parse_metadata(wrapper_object)
+        matches = re.search('shape=([^;]+);', cell.get('style'))
         if matches:
             shape = matches.group(1)
-            nodes[cell.get('id')] = {'type': shape}
+            if metadata is not None:
+                nodes[wrapper_object.get('id')] = {'type': shape,
+                                                   'metadata': metadata}
+            else:
+                nodes[wrapper_object.get('id')] = {'type': shape}
 
             if shape not in node_ids:
                 node_ids[shape] = []
-            node_ids[shape].append(cell.get('id'))
+            node_ids[shape].append(wrapper_object.get('id'))
 
-            for attrib in cell.keys():
-                if attrib not in ['label', 'id']:
-                    nodes[cell.get('id')][attrib] = cell.get(attrib)
+            # for attrib in wrapper_object.keys():
+            #     if attrib not in ['label', 'id']:
+            #         nodes[wrapper_object.get('id')][attrib] = \
+            #           wrapper_object.get(attrib)
+
+            # print(nodes[wrapper_object.get('id')])
 
     for edge_id in edges:
         # Edges must have a source and a target node
