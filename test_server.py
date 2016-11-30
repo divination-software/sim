@@ -2,14 +2,14 @@
 
 import unittest
 import json
-import server
+import main
 
 class ServerTestCase(unittest.TestCase):
     """Tests for the server."""
 
     def setUp(self):
         """Run before every test."""
-        self.app = server.APP.test_client()
+        self.app = main.app.test_client()
 
     def tearDown(self):
         """Run after every test."""
