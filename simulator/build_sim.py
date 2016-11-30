@@ -39,15 +39,19 @@ def parse_metadata(metadata_object):
         decision_value = metadata_object.get('decision')
         node_type = metadata_object.get('nodeType')
         resource_type = metadata_object.get('resource')
+        delay_key = 'delay'
 
         if metadata_type is not None:
-            metadata[metadata_type] = {}
+            metadata[delay_key] = {}
 
         if delay_type is not None:
-            metadata[metadata_type]['type'] = delay_type
+            # metadata[metadata_type]['type'] = delay_type
+            metadata[delay_key] = {'type': delay_type}
+            metadata['processType'] = metadata_type
 
         if decision_value is not None:
-            metadata['decision'] = decision_value
+            metadata['type'] = 'probability'
+            metadata['args'] = {'probability': decision_value}
 
         if node_type is not None and node_type == 'resource':
             resource_name = metadata_object.get('Name')
@@ -61,22 +65,22 @@ def parse_metadata(metadata_object):
                 max_value is not None or
                 val_value is not None or
                 resource_type is not None):
-            metadata[metadata_type]['args'] = {}
+            metadata[delay_key]['args'] = {}
 
         if min_value is not None:
-            metadata[metadata_type]['args']['min'] = min_value
+            metadata[delay_key]['args']['min'] = min_value
 
         if mid_value is not None:
-            metadata[metadata_type]['args']['mid'] = mid_value
+            metadata[delay_key]['args']['mid'] = mid_value
 
         if max_value is not None:
-            metadata[metadata_type]['args']['max'] = max_value
+            metadata[delay_key]['args']['max'] = max_value
 
         if val_value is not None:
-            metadata[metadata_type]['args']['val'] = val_value
+            metadata[delay_key]['args']['val'] = val_value
 
         if resource_type is not None:
-            metadata[metadata_type]['args']['resource'] = resource_type
+            metadata[delay_key]['args']['resource'] = resource_type
 
     return metadata
 
@@ -369,15 +373,15 @@ def parse_sim(xml_string):
             #         nodes[wrapper_object.get('id')][attrib] = \
             #           wrapper_object.get(attrib)
 
-            # if nodes:
-            #     object_id = wrapper_object_id
-            #     if object_id in nodes:
-            #         print(nodes[wrapper_object_id])
+            if nodes:
+                object_id = wrapper_object_id
+                if object_id in nodes:
+                    print(nodes[wrapper_object_id])
 
-            # if resources:
-            #     resource_id = wrapper_object_id
-            #     if resource_id in resources:
-            #         print(resources[resource_id])
+            if resources:
+                resource_id = wrapper_object_id
+                if resource_id in resources:
+                    print(resources[resource_id])
 
     for edge_id in edges:
         # Edges must have a source and a target node

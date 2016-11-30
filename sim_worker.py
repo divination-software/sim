@@ -41,7 +41,7 @@ def run_oldest_sim():
         headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
 
         if error_message is None:
-            sim = Simulation(nodes, edges)
+            sim = Simulation(nodes, edges, resources)
             statistics = sim.run()
 
             response_data = {
