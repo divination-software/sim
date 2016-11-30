@@ -3,7 +3,7 @@
 import simpy
 # import logging
 # import numpy as np
-from .nodes import Source, Process, Exit
+from .nodes import Source, Process, Exit, Decision
 from .graph import add_node, add_edge
 
 class Basic(object):
@@ -65,6 +65,18 @@ class Simulation(object):
                     node = Exit(
                         env,
                         node_id)
+                elif node_type == 'decision':
+                    # get branches for this current decision
+                    branches = {}
+                    for edge_id in self.graph['edges']:
+                        branch = self.graph['edges'][edge_id]
+                        branch_id = branch['source']
+                        if branch_id == node_id:
+                            branches[edge_id] = branch
+                    metadata = self.graph['nodes'][node_id]['metadata']
+                    # probability value is float type
+                    probability = float(metadata['args']['probability'])
+                    node = Decision(env, node_id, branches, probability)
                 elif node_type == 'process':
                     process_type = self.graph['nodes'][node_id] \
                         ['metadata']['processType']
