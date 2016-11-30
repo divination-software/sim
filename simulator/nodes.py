@@ -1,5 +1,4 @@
 """Define the nodes which make up a simulation"""
-from copy import copy
 from simulator.mixins.delay import Delay
 from simulator.mixins.proceed import Proceed
 from simulator.mixins.sim_node import SimNode
@@ -24,95 +23,88 @@ class Source(Proceed, Delay, Statistics, SimNode, object):
     def run(self):
         """Perform the actions associated with this node."""
         while True:
-            # print('Creating instance at %7.4f!' % self.env.now)
-            self.record('created_at', self.env.now)
+            # Create entity which will move through the simulation
+            entity = self.Model(self.created_count)
 
-            modified_model_args = copy(self.model_args)
-            modified_model_args['name'] = '%s %d' % \
-                (self.model_args['name'], self.created_count)
+            entity.record_statistic('created_at', self.env.now)
 
-            instance = self.Model(**modified_model_args)
-            self.proceed(self.outbound_edge, instance)
+            self.proceed(self.outbound_edge, entity)
 
+            # Delay before creating another entity
             yield self.env.timeout(
                 self.calculate_delay(self.delay['type'], **self.delay['args']))
-
             self.created_count += 1
 
 class Process(Proceed, Delay, Statistics, SimNode, object):
     """A node which performs a combination of seizing, delaying, and releasing.
 
     Seizing:
-        Claim a some quantity of a resource for the current instance
+        Claim a some quantity of a resource for the current entity
 
     Delay:
-        Delay the progress of an instance through the simulation
+        Delay the progress of an entity through the simulation
 
     Release:
-        Renounce the current instance's claim on some quantity of a resource
+        Renounce the current entity's claim on some quantity of a resource
     """
     def __init__(self, env, node_id, outbound_edge, **kwargs):
         self.env = env
         self.node_id = node_id
         self.outbound_edge = outbound_edge
 
-        # Set defaults
-        self.will_seize = False
-        self.will_delay = False
-        self.will_release = False
+        self.will_seize = kwargs['will_seize']
+        self.to_be_seized = kwargs['to_be_seized']
+
+        self.will_delay = kwargs['will_delay']
+        self.delay = kwargs['delay']
+
+        self.will_release = kwargs['will_release']
+        self.to_be_released = kwargs['to_be_released']
+
+        # TODO: Remove this debugging code once it's not needed
+        print('node_id', self.node_id)
+        print('')
+
+        print('will_seize', self.will_seize)
+        print('to_be_seized', self.to_be_seized)
+        print('')
+
+        print('will_delay', self.will_delay)
+        print('delay', self.delay)
+        print('')
+
+        print('will_release', self.will_release)
+        print('to_be_released', self.to_be_released)
+        print('')
 
         self.statistics = {}
 
-        process_type = kwargs['process_type']
-        self.delay = kwargs['delay']
-        if process_type == 'delay':
-            self.will_delay = True
-        elif process_type == 'siezeDelay':
-            self.will_seize = True
-            self.will_delay = True
-        elif process_type == 'sieze':
-            self.will_seize = True
-        elif process_type == 'siezeDelayRelease':
-            self.will_delay = True
-            self.will_release = True
-            self.will_seize = True
-
-        # # Override defaults
-        # if 'will_seize' in kwargs and kwargs['will_seize'] is True:
-        #     self.will_seize = True
-        #     # TODO: throw error if kwargs['to_be_seized'] isn't defined
-        #     self.to_be_seized = kwargs['to_be_seized']
-
-        # if 'will_delay' in kwargs and kwargs['will_delay'] is True:
-        #     self.will_delay = True
-        #     self.delay = kwargs['delay']
-
-        # if 'will_release' in kwargs and kwargs['will_release'] is True:
-        #     self.will_release = True
-        #     # TODO: throw error if kwargs['to_be_released'] isn't defined
-        #     self.to_be_seized = kwargs['to_be_released']
-
-    def run(self, instance):
+    def run(self, entity):
         """Perform the actions associated with this node."""
-        # print('%s is performing action at %7.4f!' % \
-              # (instance.get_name(), self.env.now))
         arrival_time = self.env.now
+        request = None
+
         if self.will_seize:
-            # TODO
-            pass
+            # MVP Resource Seizing:
+            # Resources must be seized and released in the same process or
+            # they'll never be released. Resources are, at the moment, attached
+            # to nodes (the process node) -- not to entities themselves.
+            request = self.to_be_seized.request()
+            yield request
 
         if self.will_delay:
             yield self.env.timeout(
                 self.calculate_delay(self.delay['type'], **self.delay['args']))
 
         if self.will_release:
-            # TODO
-            pass
+            # MVP Resource Seizing:
+            # Resources must be seized and released in the same process or
+            # they'll never be released. Resources are, at the moment, attached
+            # to nodes (the process node) -- not to entities themselves.
+            self.to_be_released.release(request)
 
-        # print('%s is done performing action at %7.4f!' % \
-              # (instance.get_name(), self.env.now))
-        self.record('arrive_and_depart', (arrival_time, self.env.now))
-        self.proceed(self.outbound_edge, instance)
+        entity.record_statistic('arrive_and_depart', (arrival_time, self.env.now))
+        self.proceed(self.outbound_edge, entity)
 
 class Decision(Proceed, Statistics, SimNode, object):
     """A node which branches the simulation off in one of two directions based
@@ -124,7 +116,7 @@ class Decision(Proceed, Statistics, SimNode, object):
 
         self.statistics = {}
 
-    def run(self, instance):
+    def run(self, entity):
         """Perform the actions associated with this node."""
         # TODO
         pass
@@ -134,22 +126,24 @@ class Exit(Statistics, SimNode, object):
     def __init__(self, env, node_id):
         self.env = env
         self.node_id = node_id
+        self.departed_entities = []
 
         self.statistics = {}
 
-    def run(self, instance):
+    def run(self, entity):
         """Perform the actions associated with this node."""
-        self.record('departure', (self.env.now))
+        entity.record_statistic('departure', (self.env.now))
+        self.departed_entities.append(entity);
 
-        # print('%s is exiting at %7.4f!' % \
-              # (instance.get_name(), self.env.now))
+    def get_departed_entities(self):
+        return self.departed_entities
 
 class Spread(Proceed, Statistics, SimNode, object):
     """Not implemented yet."""
     def __init__(self, env, node_id, branches):
         pass
 
-    def run(self, instance):
+    def run(self, entity):
         """Not implemented yet."""
         pass
 
@@ -158,7 +152,7 @@ class Modify(Proceed, Statistics, SimNode, object):
     def __init__(self, env, node_id, branches):
         pass
 
-    def run(self, instance):
+    def run(self, entity):
         """Not implemented yet."""
         pass
 
@@ -167,6 +161,6 @@ class Record(Proceed, Statistics, SimNode, object):
     def __init__(self, env, node_id, branches):
         pass
 
-    def run(self, instance):
+    def run(self, entity):
         """Not implemented yet."""
         pass
