@@ -31,7 +31,7 @@ def run_oldest_sim():
 
         error_message = None
         try:
-            nodes, edges = build_sim(simulation)
+            nodes, edges, resources = build_sim(simulation)
         except SimBuildError as error:
             error_message = error.message
         except:

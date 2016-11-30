@@ -1,0 +1,37 @@
+<mxGraphModel dx="431" dy="323" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1"
+    pageWidth="850" pageHeight="1100" background="#ffffff">
+    <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;exitX=1;exitY=0.5;entryX=0;entryY=0.5;jettySize=auto;orthogonalLoop=1;"
+            edge="1" parent="1" source="2" target="3">
+            <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="2" value="Source" style="shape=source;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+            <mxGeometry x="30" y="60" width="120" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;jettySize=auto;orthogonalLoop=1;"
+            edge="1" parent="1" source="3" target="5">
+            <mxGeometry relative="1" as="geometry" />
+        </mxCell><object label="Process" nodeType="process" type="siezeDelay" delayType="constant" val="2" attributeTypes="{}" resource="Cashier"
+            id="3"><mxCell style="shape=process;whiteSpace=wrap;html=1;" vertex="1" parent="1"><mxGeometry x="180" y="60" width="120" height="80" as="geometry"/></mxCell></object>
+        <mxCell
+            id="8" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;exitX=1;exitY=0.5;entryX=0;entryY=0.5;jettySize=auto;orthogonalLoop=1;"
+            edge="1" parent="1" source="5" target="6">
+            <mxGeometry relative="1" as="geometry" />
+            </mxCell><object label="Process" nodeType="process" type="siezeDelayRelease" delayType="uniform" val="0" attributeTypes="{}"
+                resource="Cooker" min="1" max="2" id="5"><mxCell style="shape=process;whiteSpace=wrap;html=1;" vertex="1" parent="1"><mxGeometry x="180" y="190" width="120" height="80" as="geometry"/></mxCell></object>
+            <mxCell
+                id="6" value="Exit" style="shape=exit;whiteSpace=wrap,html=1;" vertex="1" parent="1">
+                <mxGeometry x="330" y="190" width="120" height="80" as="geometry" />
+                </mxCell><object label="Resource" nodeType="resource" resourceId="0" Name="Cashier" Count="1" attributeTypes="{&quot;Name&quot;:&quot;text&quot;,&quot;Count&quot;:&quot;number&quot;}"
+                    id="9"><mxCell style="shape=resource;whiteSpace=wrap;html=1;" vertex="1" parent="1"><mxGeometry x="40" y="220" width="120" height="80" as="geometry"/></mxCell></object>
+                <object
+                    label="Resource" nodeType="resource" resourceId="1" Name="Cooker" Count="2" attributeTypes="{&quot;Name&quot;:&quot;text&quot;,&quot;Count&quot;:&quot;number&quot;}"
+                    id="10">
+                    <mxCell style="shape=resource;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                        <mxGeometry x="320" y="60" width="120" height="80" as="geometry" />
+                    </mxCell>
+                    </object>
+    </root>
+</mxGraphModel>

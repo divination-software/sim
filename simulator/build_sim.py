@@ -37,6 +37,8 @@ def parse_metadata(metadata_object):
         max_value = metadata_object.get('max')
         val_value = metadata_object.get('val')
         decision_value = metadata_object.get('decision')
+        node_type = metadata_object.get('nodeType')
+        resource_type = metadata_object.get('resource')
 
         if metadata_type is not None:
             metadata[metadata_type] = {}
@@ -44,16 +46,21 @@ def parse_metadata(metadata_object):
         if delay_type is not None:
             metadata[metadata_type]['type'] = delay_type
 
-        # currently for decision type is hard coded
-        # TODO: update how to structure metadata for decision
         if decision_value is not None:
-            metadata['decision'] = {'type': 'decision'}
+            metadata['decision'] = decision_value
+
+        if node_type is not None and node_type == 'resource':
+            resource_name = metadata_object.get('Name')
+            resource_count = metadata_object.get('Count')
+            metadata = {'name': resource_name,
+                        'count': resource_count}
 
         if (delay_type is not None or
                 min_value is not None or
                 mid_value is not None or
                 max_value is not None or
-                val_value is not None):
+                val_value is not None or
+                resource_type is not None):
             metadata[metadata_type]['args'] = {}
 
         if min_value is not None:
@@ -68,10 +75,8 @@ def parse_metadata(metadata_object):
         if val_value is not None:
             metadata[metadata_type]['args']['val'] = val_value
 
-        # TODO: update how to assign metadata for decision
-        if decision_value is not None:
-            metadata['decision'] = {'args': {}}
-            metadata['decision']['args']['val'] = decision_value
+        if resource_type is not None:
+            metadata[metadata_type]['args']['resource'] = resource_type
 
     return metadata
 
@@ -311,9 +316,13 @@ def parse_sim(xml_string):
     # There are also a few bare <mxCell>s which are added in automatically by
     # mxGraph. We can safely ignore these as they have nothing to do with the
     # simulation.
+    #
+    # Resources dictionary contains a collection of resources
+    #
     edges = {}
     nodes = {}
     node_ids = {}
+    resources = {}
 
     for cell in bare_cells:
         # Ensure this cell is a edge/node
@@ -334,25 +343,41 @@ def parse_sim(xml_string):
     for wrapper_object in wrapper_objects:
         cell = wrapper_object.find('mxCell')
         metadata = parse_metadata(wrapper_object)
+        wrapper_object_id = wrapper_object.get('id')
         matches = re.search('shape=([^;]+);', cell.get('style'))
         if matches:
             shape = matches.group(1)
-            if metadata is not None:
-                nodes[wrapper_object.get('id')] = {'type': shape,
-                                                   'metadata': metadata}
-            else:
-                nodes[wrapper_object.get('id')] = {'type': shape}
+            node_type = wrapper_object.get('nodeType')
+            # Get resource object
+            if node_type == 'resource':
+                resources[wrapper_object_id] = {'type': node_type}
+                if metadata is not None:
+                    resources[wrapper_object_id].update(metadata)
+            else: # just other shape object
+                if metadata is not None:
+                    nodes[wrapper_object_id] = {'type': shape,
+                                                'metadata': metadata}
+                else:
+                    nodes[wrapper_object_id] = {'type': shape}
 
-            if shape not in node_ids:
-                node_ids[shape] = []
-            node_ids[shape].append(wrapper_object.get('id'))
+                if shape not in node_ids:
+                    node_ids[shape] = []
+                node_ids[shape].append(wrapper_object_id)
 
             # for attrib in wrapper_object.keys():
             #     if attrib not in ['label', 'id']:
             #         nodes[wrapper_object.get('id')][attrib] = \
             #           wrapper_object.get(attrib)
 
-            # print(nodes[wrapper_object.get('id')])
+            # if nodes:
+            #     object_id = wrapper_object_id
+            #     if object_id in nodes:
+            #         print(nodes[wrapper_object_id])
+
+            # if resources:
+            #     resource_id = wrapper_object_id
+            #     if resource_id in resources:
+            #         print(resources[resource_id])
 
     for edge_id in edges:
         # Edges must have a source and a target node
@@ -369,7 +394,7 @@ def parse_sim(xml_string):
             nodes[edge_source_id]['outbound_edges'] = \
                 [edge_id]
 
-    return [nodes, node_ids, edges]
+    return [nodes, node_ids, edges, resources]
 
 def test_sim_sources(nodes, edges, source_node_ids):
     """Test all Sources in the simulation
@@ -522,6 +547,6 @@ def paths_all_lead_to_an_exit(source_id, edges, nodes):
 def build_sim(xml_string):
     """Build a representation of a given simulation which can be run in
     SimPy."""
-    nodes, node_ids, edges = parse_sim(xml_string)
+    nodes, node_ids, edges, resources = parse_sim(xml_string)
     test_sim(nodes, node_ids, edges)
-    return [nodes, edges]
+    return [nodes, edges, resources]
