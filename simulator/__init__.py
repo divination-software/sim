@@ -66,7 +66,8 @@ class Simulation(object):
                         env,
                         node_id)
                 elif node_type == 'process':
-                    process_type = self.graph['nodes'][node_id]['metadata']['processType'],
+                    process_type = self.graph['nodes'][node_id] \
+                        ['metadata']['processType']
                     delay = self.graph['nodes'][node_id]['metadata']['delay']
 
                     will_delay = False
@@ -91,11 +92,29 @@ class Simulation(object):
                         will_release = True
                         will_seize = True
 
-                    # if will_seize:
-                        # to_be_seized = kwargs['to_be_seized']
+                    # Get resource information that is attached to this process
+                    # and instantiate the instance of resource
+                    resource = delay['args']['resource']
+                    resources = self.graph['resources']
+                    if will_seize and resources is not None and \
+                        resource is not None:
+                        for resource in resources:
+                            if resource['name'] == resource:
+                                resource_count = int(resource['count'])
+                                to_be_seized = simpy.Resource(env, \
+                                    capacity=resource_count)
+                    else:
+                        to_be_seized = None
 
-                    # if will_release:
-                        # to_be_released = kwargs['to_be_released']
+                    if will_release and resources is not None and \
+                        resource is not None:
+                        for resource in resources:
+                            if resource['name'] == resource:
+                                resource_count = int(resource['count'])
+                                to_be_released = simpy.Resource(env, \
+                                            capacity=resource_count)
+                    else:
+                        to_be_released = None
 
                     node = Process(
                         env,
