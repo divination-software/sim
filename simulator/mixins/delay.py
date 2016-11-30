@@ -7,7 +7,7 @@ class Delay(object):
         """Delay the progress of the simulation"""
         duration = 0
         if delayType == 'constant':
-            duration = kwargs['value']
+            duration = kwargs['val']
 
         elif delayType == 'uniform':
             duration = random.randint(
@@ -15,10 +15,10 @@ class Delay(object):
 
         elif delayType == 'triangular':
             duration = random.triangular(
-                kwargs['min'], kwargs['max'], kwargs['mode'])
+                kwargs['min'], kwargs['max'], kwargs['mid'])
 
         elif delayType == 'exponential':
             duration = random.expovariate(
-                kwargs['value'])
+                kwargs['val'])
 
         return duration

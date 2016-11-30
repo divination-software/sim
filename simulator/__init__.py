@@ -18,10 +18,11 @@ class Basic(object):
 
 class Simulation(object):
     """Representation of a runnable simulation."""
-    def __init__(self, nodes, edges):
+    def __init__(self, nodes, edges, resources):
         self.graph = {
             'nodes': nodes,
             'edges': edges,
+            'resources': resources,
         }
         self.nodes = []
         self.node_statistics = {}
@@ -47,7 +48,7 @@ class Simulation(object):
                         Basic,
                         basic_args,
                         self.graph['nodes'][node_id]['outbound_edges'][0],
-                        int(self.graph['nodes'][node_id]['Delay']))
+                        self.graph['nodes'][node_id]['metadata']['delay'])
                     sources.append(node)
                 elif node_type == 'exit':
                     node = Exit(
@@ -58,8 +59,9 @@ class Simulation(object):
                         env,
                         node_id,
                         self.graph['nodes'][node_id]['outbound_edges'][0],
-                        will_delay=True,
-                        delay_duration=int(self.graph['nodes'][node_id]['Delay']))
+                        process_type=self.graph['nodes'][node_id]['metadata']
+                        ['processType'],
+                        delay=self.graph['nodes'][node_id]['metadata']['delay'])
 
                 add_node(node_id, node)
                 self.nodes.append(node)

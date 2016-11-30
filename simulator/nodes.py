@@ -55,6 +55,7 @@ class Process(Proceed, Delay, Statistics, SimNode, object):
         self.env = env
         self.node_id = node_id
         self.outbound_edge = outbound_edge
+
         # Set defaults
         self.will_seize = False
         self.will_delay = False
@@ -62,20 +63,34 @@ class Process(Proceed, Delay, Statistics, SimNode, object):
 
         self.statistics = {}
 
-        # Override defaults
-        if 'will_seize' in kwargs and kwargs['will_seize'] is True:
-            self.will_seize = True
-            # TODO: throw error if kwargs['to_be_seized'] isn't defined
-            self.to_be_seized = kwargs['to_be_seized']
-
-        if 'will_delay' in kwargs and kwargs['will_delay'] is True:
+        process_type = kwargs['process_type']
+        self.delay = kwargs['delay']
+        if process_type == 'delay':
             self.will_delay = True
-            self.delay = kwargs['delay']
-
-        if 'will_release' in kwargs and kwargs['will_release'] is True:
+        elif process_type == 'siezeDelay':
+            self.will_seize = True
+            self.will_delay = True
+        elif process_type == 'sieze':
+            self.will_seize = True
+        elif process_type == 'siezeDelayRelease':
+            self.will_delay = True
             self.will_release = True
-            # TODO: throw error if kwargs['to_be_released'] isn't defined
-            self.to_be_seized = kwargs['to_be_released']
+            self.will_seize = True
+
+        # # Override defaults
+        # if 'will_seize' in kwargs and kwargs['will_seize'] is True:
+        #     self.will_seize = True
+        #     # TODO: throw error if kwargs['to_be_seized'] isn't defined
+        #     self.to_be_seized = kwargs['to_be_seized']
+
+        # if 'will_delay' in kwargs and kwargs['will_delay'] is True:
+        #     self.will_delay = True
+        #     self.delay = kwargs['delay']
+
+        # if 'will_release' in kwargs and kwargs['will_release'] is True:
+        #     self.will_release = True
+        #     # TODO: throw error if kwargs['to_be_released'] isn't defined
+        #     self.to_be_seized = kwargs['to_be_released']
 
     def run(self, instance):
         """Perform the actions associated with this node."""
