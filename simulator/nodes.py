@@ -1,10 +1,11 @@
 """Define the nodes which make up a simulation"""
 from copy import copy
+from simulator.mixins.delay import Delay
 from simulator.mixins.proceed import Proceed
 from simulator.mixins.sim_node import SimNode
 from simulator.mixins.statistics import Statistics
 
-class Source(Proceed, Statistics, SimNode, object):
+class Source(Proceed, Delay, Statistics, SimNode, object):
     """Generates entities, at some interval, which move through the simulation.
     These entities represent various actors as defined by the user when they
     build the simulation."""
@@ -33,11 +34,12 @@ class Source(Proceed, Statistics, SimNode, object):
             instance = self.Model(**modified_model_args)
             self.proceed(self.outbound_edge, instance)
 
-            yield self.env.timeout(self.delay) # replace with delay_config
+            yield self.env.timeout(
+                self.calculate_delay(self.delay['type'], **self.delay['args']))
 
             self.created_count += 1
 
-class Process(Proceed, Statistics, SimNode, object):
+class Process(Proceed, Delay, Statistics, SimNode, object):
     """A node which performs a combination of seizing, delaying, and releasing.
 
     Seizing:
@@ -68,8 +70,7 @@ class Process(Proceed, Statistics, SimNode, object):
 
         if 'will_delay' in kwargs and kwargs['will_delay'] is True:
             self.will_delay = True
-            # TODO: customize delay duration. Make it a generator?
-            self.delay_duration = kwargs['delay_duration']
+            self.delay = kwargs['delay']
 
         if 'will_release' in kwargs and kwargs['will_release'] is True:
             self.will_release = True
@@ -86,7 +87,8 @@ class Process(Proceed, Statistics, SimNode, object):
             pass
 
         if self.will_delay:
-            yield self.env.timeout(self.delay_duration)
+            yield self.env.timeout(
+                self.calculate_delay(self.delay['type'], **self.delay['args']))
 
         if self.will_release:
             # TODO
