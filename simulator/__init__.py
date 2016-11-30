@@ -1,20 +1,31 @@
 """Create and run a new simulation"""
 
 import simpy
-import logging
+# import logging
 # import numpy as np
 from .nodes import Source, Process, Exit
-from .graph import add_node, add_edge, get_nodes, get_edges
+from .graph import add_node, add_edge
 
 class Basic(object):
     """Simple class to pass through the simulation (as instance)."""
-    def __init__(self, **kwargs):
-        if 'name' in kwargs:
-            self.name = kwargs['name']
+    def __init__(self, id):
+        self.statistics = {}
+        self.id = id
 
     def get_name(self):
         """Return the instance's name."""
         return self.name
+
+    def record_statistic(self, event, record):
+        """Record a stat."""
+        if event not in self.statistics:
+            self.statistics[event] = [record]
+        else:
+            self.statistics[event].append(record)
+
+    def get_statistics(self):
+        """Get all statistics for this node."""
+        return self.statistics
 
 class Simulation(object):
     """Representation of a runnable simulation."""
@@ -29,7 +40,7 @@ class Simulation(object):
 
     def run(self):
         """Run the simulation and respond with statistics about the run."""
-        for _ in range(3):
+        for _ in range(1):
             self.nodes = []
             env = simpy.Environment()
             basic_args = {'name': 'Basic'}
@@ -55,13 +66,47 @@ class Simulation(object):
                         env,
                         node_id)
                 elif node_type == 'process':
+                    process_type = self.graph['nodes'][node_id]['metadata']['processType'],
+                    delay = self.graph['nodes'][node_id]['metadata']['delay']
+
+                    will_delay = False
+                    will_seize = False
+                    will_release = False
+
+                    to_be_seized = None
+                    to_be_released = None
+
+                    if process_type == 'delay':
+                        will_delay = True
+
+                    elif process_type == 'siezeDelay':
+                        will_seize = True
+                        will_delay = True
+
+                    elif process_type == 'sieze':
+                        will_seize = True
+
+                    elif process_type == 'siezeDelayRelease':
+                        will_delay = True
+                        will_release = True
+                        will_seize = True
+
+                    # if will_seize:
+                        # to_be_seized = kwargs['to_be_seized']
+
+                    # if will_release:
+                        # to_be_released = kwargs['to_be_released']
+
                     node = Process(
                         env,
                         node_id,
                         self.graph['nodes'][node_id]['outbound_edges'][0],
-                        process_type=self.graph['nodes'][node_id]['metadata']
-                        ['processType'],
-                        delay=self.graph['nodes'][node_id]['metadata']['delay'])
+                        will_seize=will_seize,
+                        to_be_seized=to_be_seized,
+                        will_delay=will_delay,
+                        delay=delay,
+                        will_release=will_release,
+                        to_be_released=to_be_released)
 
                 add_node(node_id, node)
                 self.nodes.append(node)

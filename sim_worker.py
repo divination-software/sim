@@ -53,19 +53,23 @@ def run_oldest_sim():
             if board_name is not None:
                 response_data['data']['board_name'] = board_name
 
-            requests.post(
-                url,
-                headers=headers,
-                data=json.dumps(response_data),
-                verify=False)
+            # requests.post(
+                # url,
+                # headers=headers,
+                # data=json.dumps(response_data),
+                # verify=False)
+            print('Response disabled for testing')
+            print(response_data)
         else:
-            requests.post(
-                url,
-                headers=headers,
-                data=json.dumps({'error': {'message': error_message}}),
-                verify=False)
+            # requests.post(
+                # url,
+                # headers=headers,
+                # data=json.dumps({'error': {'message': error_message}}),
+                # verify=False)
+            print('Response disabled for testing')
+            print(error_message)
 
-        cursor.execute('DELETE FROM simulations WHERE id = ?', (str(sim_id)))
+        # cursor.execute('DELETE FROM simulations WHERE id = ?', (str(sim_id)))
         conn.commit()
     conn.close()
 
