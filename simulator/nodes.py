@@ -101,9 +101,9 @@ class Decision(Proceed, Statistics, SimNode, object):
         entity.record_statistic('visited', self.node_id)
 
         if random.uniform(0, 1) > self.probability:
-            self.proceed(self.branches[0], entity)
+            self.proceed(self.branches['up'], entity)
         else:
-            self.proceed(self.branches[1], entity)
+            self.proceed(self.branches['down'], entity)
 
 class Exit(Statistics, SimNode, object):
     """A node representing the end-of-the-line in a simulation."""

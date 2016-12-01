@@ -76,11 +76,18 @@ class Simulation(object):
                 elif node_type == 'decision':
                     # get branches for this current decision
                     branches = {}
+                    edges = []
                     for edge_id in self.graph['edges']:
                         branch = self.graph['edges'][edge_id]
                         branch_id = branch['source']
                         if branch_id == node_id:
-                            branches[edge_id] = branch
+                            edges.append(edge_id)
+
+                    if len(edges) == 2:
+                        branches['up'] = edges[0]
+                        branches['down'] = edges[1]
+
+                    # Get the metadata to grab the probability value
                     metadata = self.graph['nodes'][node_id]['metadata']
                     # probability value is float type
                     probability = float(metadata['args']['probability'])
