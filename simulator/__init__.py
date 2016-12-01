@@ -182,6 +182,9 @@ class Simulation(object):
 
             for entity in departed_entities:
                 statistics = entity.get_statistics()
+                # TODO: Generate actual statistics
+                # TODO: The return value of this method should be those newly
+                # generated statistics
                 print(statistics)
 
         return self.node_statistics
