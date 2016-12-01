@@ -8,9 +8,9 @@ from .graph import add_node, add_edge
 
 class Basic(object):
     """Simple class to pass through the simulation (as instance)."""
-    def __init__(self, id):
+    def __init__(self, entity_id):
         self.statistics = {}
-        self.id = id
+        self.id = entity_id
         self.resources = {}
 
     def get_name(self):
@@ -53,7 +53,21 @@ class Simulation(object):
             env = simpy.Environment()
             basic_args = {'name': 'Basic'}
 
+            # Build array of simpy Resource objects for use later
+            resources = {}
+            for resource_id in self.graph['resources']:
+                resource_name = self.graph['resources'][resource_id]['name']
+                resource_count = 1
+                try:
+                    resource_count = int(self.graph['resources'][resource_id]['count'])
+                except ValueError:
+                    # Use default value of 1
+                    pass
+
+                resources[resource_name] = simpy.Resource(env, capacity=resource_count)
+
             sources = []
+            exits = []
 
             for node_id in self.graph['nodes']:
                 node = None
@@ -73,6 +87,7 @@ class Simulation(object):
                     node = Exit(
                         env,
                         node_id)
+                    exits.append(node)
                 elif node_type == 'decision':
                     # get branches for this current decision
                     branches = {}
@@ -97,53 +112,34 @@ class Simulation(object):
                         ['metadata']['processType']
                     delay = self.graph['nodes'][node_id]['metadata']['delay']
 
+                    # Set defaults
                     will_delay = False
                     will_seize = False
                     will_release = False
-
                     to_be_seized = None
                     to_be_released = None
 
+                    # Override defaults
                     if process_type == 'delay':
                         will_delay = True
-
                     elif process_type == 'siezeDelay':
                         will_seize = True
                         will_delay = True
-
                     elif process_type == 'sieze':
                         will_seize = True
-
                     elif process_type == 'siezeDelayRelease':
                         will_delay = True
                         will_release = True
                         will_seize = True
 
-                    # Get resource information that is attached to this process
-                    # and instantiate the instance of resource
-                    resource = None
-                    if 'resource' in delay['args'] is not None:
-                        resource = delay['args']['resource']
-                    resources = self.graph['resources']
-                    if will_seize and resources is not None and \
-                        resource is not None:
-                        for resource in resources:
-                            if resource['name'] == resource:
-                                resource_count = int(resource['count'])
-                                to_be_seized = simpy.Resource(env, \
-                                    capacity=resource_count)
-                    else:
-                        to_be_seized = None
-
-                    if will_release and resources is not None and \
-                        resource is not None:
-                        for resource in resources:
-                            if resource['name'] == resource:
-                                resource_count = int(resource['count'])
-                                to_be_released = simpy.Resource(env, \
-                                            capacity=resource_count)
-                    else:
-                        to_be_released = None
+                    # If we're seizing or releasing we need to know about the
+                    # resource specified for this process.
+                    if will_seize or will_release:
+                        process_resource_name = delay['args']['resource']
+                        if will_seize:
+                            to_be_seized = resources[process_resource_name]
+                        if will_release:
+                            to_be_released = resources[process_resource_name]
 
                     node = Process(
                         env,
@@ -164,7 +160,12 @@ class Simulation(object):
 
             for source in sources:
                 env.process(source.run())
-            env.run(until=5000)
+
+            days_to_run = 1
+            hours_in_a_day = 8
+            seconds_in_a_day = 60 * 60 * hours_in_a_day
+            simulation_duration = days_to_run * seconds_in_a_day
+            env.run(until=simulation_duration)
 
             for node in self.nodes:
                 if node.get_node_id() not in self.node_statistics:
@@ -175,14 +176,15 @@ class Simulation(object):
                     self.node_statistics[node.get_node_id()]['statistics'].append(
                             node.get_statistics())
 
+            departed_entities = []
+            for exit in exits:
+                departed_entities.extend(exit.get_departed_entities())
+
+            for entity in departed_entities:
+                statistics = entity.get_statistics()
+                # TODO: Generate actual statistics
+                # TODO: The return value of this method should be those newly
+                # generated statistics
+                print(statistics)
+
         return self.node_statistics
-
-'''
-        for node_id in self.node_statistics:
-            if self.node_statistics[node_id]['node_type'] == 'Source':
-                for run in self.node_statistics[node_id]['statistics']:
-                    created_at_times = np.array(run)
-                    print(np.diff(created_at_times))
-'''
-
-

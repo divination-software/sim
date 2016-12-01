@@ -334,15 +334,26 @@ def parse_sim(xml_string):
             matches = re.search('shape=([^;]+);', cell.get('style'))
             if matches:
                 shape = matches.group(1)
-                nodes[cell.get('id')] = {'type': shape}
+                nodes[cell.get('id')] = {
+                    'type': shape}
 
                 if shape not in node_ids:
                     node_ids[shape] = []
                 node_ids[shape].append(cell.get('id'))
             else:
+                exit_x = None
+                exit_y = None
+                exit_x_matches = re.search('exitX=([^;]+);', cell.get('style'))
+                exit_y_matches = re.search('exitY=([^;]+);', cell.get('style'))
+                if exit_x_matches:
+                    exit_x = exit_x_matches.group(1)
+                if exit_y_matches:
+                    exit_y = exit_y_matches.group(1)
                 edges[cell.get('id')] = {
                     'target': cell.get('target'),
-                    'source': cell.get('source')}
+                    'source': cell.get('source'),
+                    'exit_x': exit_x,
+                    'exit_y': exit_y}
 
     for wrapper_object in wrapper_objects:
         cell = wrapper_object.find('mxCell')
@@ -359,10 +370,12 @@ def parse_sim(xml_string):
                     resources[wrapper_object_id].update(metadata)
             else: # just other shape object
                 if metadata is not None:
-                    nodes[wrapper_object_id] = {'type': shape,
-                                                'metadata': metadata}
+                    nodes[wrapper_object_id] = {
+                        'type': shape,
+                        'metadata': metadata}
                 else:
-                    nodes[wrapper_object_id] = {'type': shape}
+                    nodes[wrapper_object_id] = {
+                        'type': shape}
 
                 if shape not in node_ids:
                     node_ids[shape] = []
@@ -378,6 +391,7 @@ def parse_sim(xml_string):
             #     if resource_id in resources:
             #         print(resources[resource_id])
 
+    decisions = {}
     for edge_id in edges:
         # Edges must have a source and a target node
         if edges[edge_id]['source'] is None:
@@ -386,12 +400,28 @@ def parse_sim(xml_string):
             raise SimBuildError('All edges must have a target node.')
 
         edge_source_id = edges[edge_id]['source']
-        if 'outbound_edges' in nodes[edge_source_id]:
-            nodes[edge_source_id]['outbound_edges'].append(
-                edge_id)
+        if nodes[edge_source_id]['type'] == 'decision':
+            decisions[edge_source_id] = nodes[edge_source_id]
+
+            if 'outbound_edges' not in nodes[edge_source_id]:
+                nodes[edge_source_id]['outbound_edges'] = {}
+
+            # Index this list by the Y coordinate of the outbound edge. The top
+            # edge should be in the first position in the list. The bottom edge
+            # should be in the second position in the list.
+            index = edges[edge_id]['exit_y']
+            nodes[edge_source_id]['outbound_edges'][index] = edge_id
         else:
-            nodes[edge_source_id]['outbound_edges'] = \
-                [edge_id]
+            if 'outbound_edges' in nodes[edge_source_id]:
+                nodes[edge_source_id]['outbound_edges'].append(edge_id)
+            else:
+                nodes[edge_source_id]['outbound_edges'] = [edge_id]
+
+    for _, decision  in decisions.items():
+        outbound_edges = \
+            [v[1] for v in decision['outbound_edges'].items()]
+        decision['outbound_edges'] = outbound_edges
+
 
     return [nodes, node_ids, edges, resources]
 
