@@ -368,20 +368,15 @@ def parse_sim(xml_string):
                     node_ids[shape] = []
                 node_ids[shape].append(wrapper_object_id)
 
-            # for attrib in wrapper_object.keys():
-            #     if attrib not in ['label', 'id']:
-            #         nodes[wrapper_object.get('id')][attrib] = \
-            #           wrapper_object.get(attrib)
+            # if nodes:
+            #     object_id = wrapper_object_id
+            #     if object_id in nodes:
+            #         print(nodes[wrapper_object_id])
 
-            if nodes:
-                object_id = wrapper_object_id
-                if object_id in nodes:
-                    print(nodes[wrapper_object_id])
-
-            if resources:
-                resource_id = wrapper_object_id
-                if resource_id in resources:
-                    print(resources[resource_id])
+            # if resources:
+            #     resource_id = wrapper_object_id
+            #     if resource_id in resources:
+            #         print(resources[resource_id])
 
     for edge_id in edges:
         # Edges must have a source and a target node

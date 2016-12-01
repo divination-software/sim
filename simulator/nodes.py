@@ -1,3 +1,5 @@
+"""Random"""
+import random
 """Define the nodes which make up a simulation"""
 from simulator.mixins.delay import Delay
 from simulator.mixins.proceed import Proceed
@@ -103,23 +105,26 @@ class Process(Proceed, Delay, Statistics, SimNode, object):
             # to nodes (the process node) -- not to entities themselves.
             self.to_be_released.release(request)
 
-        entity.record_statistic('arrive_and_depart', (arrival_time, self.env.now))
+        entity.record_statistic('arrive_and_depart', (arrival_time, \
+            self.env.now))
         self.proceed(self.outbound_edge, entity)
 
 class Decision(Proceed, Statistics, SimNode, object):
     """A node which branches the simulation off in one of two directions based
     on some condition."""
-    def __init__(self, env, node_id, branches):
+    def __init__(self, env, node_id, branches, probability):
         self.env = env
         self.node_id = node_id
         self.branches = branches
-
+        self.probability = probability
         self.statistics = {}
 
     def run(self, entity):
         """Perform the actions associated with this node."""
-        # TODO
-        pass
+        if random.uniform(0, 1) > self.probability:
+            self.proceed(self.branches[0], entity)
+        else:
+            self.proceed(self.branches[1], entity)
 
 class Exit(Statistics, SimNode, object):
     """A node representing the end-of-the-line in a simulation."""
@@ -133,9 +138,10 @@ class Exit(Statistics, SimNode, object):
     def run(self, entity):
         """Perform the actions associated with this node."""
         entity.record_statistic('departure', (self.env.now))
-        self.departed_entities.append(entity);
+        self.departed_entities.append(entity)
 
     def get_departed_entities(self):
+        """Get departed from entities"""
         return self.departed_entities
 
 class Spread(Proceed, Statistics, SimNode, object):
