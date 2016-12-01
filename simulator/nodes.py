@@ -87,23 +87,16 @@ class Process(Proceed, Delay, Statistics, SimNode, object):
         request = None
 
         if self.will_seize:
-            # MVP Resource Seizing:
-            # Resources must be seized and released in the same process or
-            # they'll never be released. Resources are, at the moment, attached
-            # to nodes (the process node) -- not to entities themselves.
             request = self.to_be_seized.request()
             yield request
+            entity.hold_resource(self.to_be_seized, request)
 
         if self.will_delay:
             yield self.env.timeout(
                 self.calculate_delay(self.delay['type'], **self.delay['args']))
 
         if self.will_release:
-            # MVP Resource Seizing:
-            # Resources must be seized and released in the same process or
-            # they'll never be released. Resources are, at the moment, attached
-            # to nodes (the process node) -- not to entities themselves.
-            self.to_be_released.release(request)
+            entity.release_resource(self.to_be_released)
 
         entity.record_statistic('arrive_and_depart', (arrival_time, \
             self.env.now))

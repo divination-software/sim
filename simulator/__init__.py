@@ -11,6 +11,7 @@ class Basic(object):
     def __init__(self, id):
         self.statistics = {}
         self.id = id
+        self.resources = {}
 
     def get_name(self):
         """Return the instance's name."""
@@ -26,6 +27,13 @@ class Basic(object):
     def get_statistics(self):
         """Get all statistics for this node."""
         return self.statistics
+
+    def hold_resource(self, resource, request):
+        self.resources[resource] = request
+
+    def release_resource(self, resource):
+        resource.release(self.resources[resource])
+        del self.resources[resource]
 
 class Simulation(object):
     """Representation of a runnable simulation."""
