@@ -114,7 +114,9 @@ class Simulation(object):
 
                     # Get resource information that is attached to this process
                     # and instantiate the instance of resource
-                    resource = delay['args']['resource']
+                    resource = None
+                    if 'resource' in delay['args'] is not None:
+                        resource = delay['args']['resource']
                     resources = self.graph['resources']
                     if will_seize and resources is not None and \
                         resource is not None:
