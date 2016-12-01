@@ -29,6 +29,7 @@ class Source(Proceed, Delay, Statistics, SimNode, object):
             entity = self.Model(self.created_count)
 
             entity.record_statistic('created_at', self.env.now)
+            entity.record_statistic('created_by', self.node_id)
 
             self.proceed(self.outbound_edge, entity)
 
@@ -63,27 +64,12 @@ class Process(Proceed, Delay, Statistics, SimNode, object):
         self.will_release = kwargs['will_release']
         self.to_be_released = kwargs['to_be_released']
 
-        # TODO: Remove this debugging code once it's not needed
-        print('node_id', self.node_id)
-        print('')
-
-        print('will_seize', self.will_seize)
-        print('to_be_seized', self.to_be_seized)
-        print('')
-
-        print('will_delay', self.will_delay)
-        print('delay', self.delay)
-        print('')
-
-        print('will_release', self.will_release)
-        print('to_be_released', self.to_be_released)
-        print('')
-
         self.statistics = {}
 
     def run(self, entity):
         """Perform the actions associated with this node."""
-        arrival_time = self.env.now
+        entity.record_statistic('visited', self.node_id)
+
         request = None
 
         if self.will_seize:
@@ -98,8 +84,6 @@ class Process(Proceed, Delay, Statistics, SimNode, object):
         if self.will_release:
             entity.release_resource(self.to_be_released)
 
-        entity.record_statistic('arrive_and_depart', (arrival_time, \
-            self.env.now))
         self.proceed(self.outbound_edge, entity)
 
 class Decision(Proceed, Statistics, SimNode, object):
@@ -114,6 +98,8 @@ class Decision(Proceed, Statistics, SimNode, object):
 
     def run(self, entity):
         """Perform the actions associated with this node."""
+        entity.record_statistic('visited', self.node_id)
+
         if random.uniform(0, 1) > self.probability:
             self.proceed(self.branches[0], entity)
         else:
