@@ -59,7 +59,7 @@ def run_oldest_sim():
                 data=json.dumps(response_data),
                 verify=False)
             print('Response disabled for testing')
-            print(response_data)
+            print(json.dumps(response_data))
         else:
             requests.post(
                 url,
@@ -69,7 +69,7 @@ def run_oldest_sim():
             print('Response disabled for testing')
             print(error_message)
 
-        # cursor.execute('DELETE FROM simulations WHERE id = ?', (str(sim_id)))
+        cursor.execute('DELETE FROM simulations WHERE id = ?', (str(sim_id)))
         conn.commit()
     conn.close()
 
