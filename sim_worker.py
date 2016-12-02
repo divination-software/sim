@@ -68,7 +68,7 @@ def run_oldest_sim():
                 verify=False)
             print('error')
 
-        # cursor.execute('DELETE FROM simulations WHERE id = ?', (str(sim_id),))
+        cursor.execute('DELETE FROM simulations WHERE id = ?', (str(sim_id),))
         conn.commit()
     conn.close()
 
