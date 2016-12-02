@@ -69,6 +69,7 @@ class Process(Proceed, Delay, Statistics, SimNode, object):
     def run(self, entity):
         """Perform the actions associated with this node."""
         entity.record_statistic('visited', self.node_id)
+        arrival_time = self.env.now
 
         request = None
 
@@ -83,6 +84,12 @@ class Process(Proceed, Delay, Statistics, SimNode, object):
 
         if self.will_release:
             entity.release_resource(self.to_be_released)
+
+        entity.record_statistic('process_visits', {
+            'node_id': self.node_id,
+            'arrived_at': arrival_time,
+            'departed_at': self.env.now
+        })
 
         self.proceed(self.outbound_edge, entity)
 
@@ -116,7 +123,8 @@ class Exit(Statistics, SimNode, object):
 
     def run(self, entity):
         """Perform the actions associated with this node."""
-        entity.record_statistic('departure', (self.env.now))
+        entity.record_statistic('departed_at', self.env.now)
+        entity.record_statistic('departed_through', self.node_id)
         self.departed_entities.append(entity)
 
     def get_departed_entities(self):
