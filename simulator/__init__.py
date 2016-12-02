@@ -121,11 +121,13 @@ class Simulation(object):
                     # Override defaults
                     if process_type == 'delay':
                         will_delay = True
+                    elif process_type == 'sieze':
+                        will_seize = True
+                    elif process_type == 'release':
+                        will_release = True
                     elif process_type == 'siezeDelay':
                         will_seize = True
                         will_delay = True
-                    elif process_type == 'sieze':
-                        will_seize = True
                     elif process_type == 'siezeDelayRelease':
                         will_delay = True
                         will_release = True
@@ -145,10 +147,10 @@ class Simulation(object):
                         node_id,
                         self.graph['nodes'][node_id]['outbound_edges'][0],
                         will_seize=will_seize,
-                        to_be_seized=to_be_seized,
                         will_delay=will_delay,
-                        delay=delay,
                         will_release=will_release,
+                        delay=delay,
+                        to_be_seized=to_be_seized,
                         to_be_released=to_be_released)
 
                 add_node(node_id, node)
