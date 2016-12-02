@@ -1,9 +1,9 @@
 """Run the oldest simulation in the db and respond."""
 
 import sqlite3
-import requests
 import json
 import configparser
+import requests
 from simulator import Simulation
 from simulator.build_sim import build_sim
 from simulator.errors import SimBuildError
@@ -59,6 +59,7 @@ def run_oldest_sim():
                 data=json.dumps(response_data),
                 verify=False)
             print('Response disabled for testing')
+            print(response_data)
             print(json.dumps(response_data))
         else:
             requests.post(
@@ -69,7 +70,7 @@ def run_oldest_sim():
             print('Response disabled for testing')
             print(error_message)
 
-        cursor.execute('DELETE FROM simulations WHERE id = ?', (str(sim_id)))
+        cursor.execute('DELETE FROM simulations WHERE id = ?', (str(sim_id),))
         conn.commit()
     conn.close()
 
