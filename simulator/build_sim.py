@@ -333,14 +333,17 @@ def parse_sim(xml_string):
         if cell.get('style') is not None:
             matches = re.search('shape=([^;]+);', cell.get('style'))
             if matches:
+                # This cell is a node
                 shape = matches.group(1)
                 nodes[cell.get('id')] = {
+                    'label': cell.get('value'),
                     'type': shape}
 
                 if shape not in node_ids:
                     node_ids[shape] = []
                 node_ids[shape].append(cell.get('id'))
             else:
+                # This cell is an edge
                 exit_x = None
                 exit_y = None
                 exit_x_matches = re.search('exitX=([^;]+);', cell.get('style'))
@@ -369,13 +372,11 @@ def parse_sim(xml_string):
                 if metadata is not None:
                     resources[wrapper_object_id].update(metadata)
             else: # just other shape object
+                nodes[wrapper_object_id] = {
+                    'type': shape,
+                    'label': wrapper_object.get('label')}
                 if metadata is not None:
-                    nodes[wrapper_object_id] = {
-                        'type': shape,
-                        'metadata': metadata}
-                else:
-                    nodes[wrapper_object_id] = {
-                        'type': shape}
+                    nodes[wrapper_object_id]['metadata'] = metadata
 
                 if shape not in node_ids:
                     node_ids[shape] = []

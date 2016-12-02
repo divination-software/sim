@@ -47,6 +47,8 @@ class Simulation(object):
 
     def run(self):
         """Run the simulation and respond with statistics about the run."""
+        for node_id in self.graph['nodes']:
+            print(node_id, self.graph['nodes'][node_id])
         for _ in range(1):
             self.nodes = []
             env = simpy.Environment()
@@ -184,12 +186,13 @@ class Simulation(object):
         # TODO: Generate actual statistics
         # TODO: The return value of this method should be those newly
         # generated statistics
-        return self.analyze_simulation(departed_entities)
+        return self.analyze_simulation(departed_entities, self.graph['nodes'])
 
-    def analyze_simulation(self, entities):
+    def analyze_simulation(self, entities, raw_nodes):
         node_stats = {}
         entity_stats = {}
 
+        print(raw_nodes)
 
         for entity in entities:
             stats = entity.get_statistics()
@@ -198,54 +201,83 @@ class Simulation(object):
             # Keep a record of how many times each node has been visited
             # Source nodes
             if stats['created_by'][0] not in node_stats:
-                node_stats[stats['created_by'][0]] = {}
+                node_id = stats['created_by'][0]
+                node_stats[node_id] = {
+                    'label': raw_nodes[node_id]['label'],
+                    'type': raw_nodes[node_id]['type']}
 
             if 'visited_count' not in node_stats[stats['created_by'][0]]:
-                node_stats[stats['created_by'][0]] = {'visited_count': 1}
+                node_id = stats['created_by'][0]
+                node_stats[node_id]['visited_count'] = 1
             else:
-                node_stats[stats['created_by'][0]]['visited_count'] += 1
+                node_id = stats['created_by'][0]
+                node_stats[node_id]['visited_count'] += 1
 
             # Exit nodes
             if stats['departed_through'][0] not in node_stats:
-                node_stats[stats['departed_through'][0]] = {}
+                node_id = stats['departed_through'][0]
+                node_stats[node_id] = {
+                    'label': raw_nodes[node_id]['label'],
+                    'type': raw_nodes[node_id]['type']}
 
             if 'visited_count' not in node_stats[stats['departed_through'][0]]:
-                node_stats[stats['departed_through'][0]] = {'visited_count': 1}
+                node_id = stats['departed_through'][0]
+                node_stats[node_id]['visited_count'] = 1
             else:
-                node_stats[stats['departed_through'][0]]['visited_count'] += 1
+                node_id = stats['departed_through'][0]
+                node_stats[node_id]['visited_count'] += 1
 
             # All other nodes
             for visited_node_id in stats['visited']:
                 if visited_node_id not in node_stats:
-                    node_stats[visited_node_id] = {}
+                    node_stats[visited_node_id] = {
+                        'label': raw_nodes[visited_node_id]['label'],
+                        'type': raw_nodes[visited_node_id]['type']}
 
                 if 'visited_count' not in node_stats[visited_node_id]:
-                    node_stats[visited_node_id] = {'visited_count': 1}
+                    node_stats[visited_node_id]['visited_count'] = 1
                 else:
                     node_stats[visited_node_id]['visited_count'] += 1
 
             # ===
             # Determine how long this entity has been alive
-            lifespan = stats['departed_at'][0] - stats['created_at'][0]
             if 'lifespans' not in entity_stats:
-                entity_stats['lifespans'] = [lifespan]
+                entity_stats['lifespans'] = [{
+                    'created_at': stats['created_at'][0],
+                    'departed_at': stats['departed_at'][0],
+                    'length': stats['departed_at'][0] - stats['created_at'][0]
+                }]
             else:
-                entity_stats['lifespans'].append(lifespan)
+                entity_stats['lifespans'].append({
+                    'created_at': stats['created_at'][0],
+                    'departed_at': stats['departed_at'][0],
+                    'length': stats['departed_at'][0] - stats['created_at'][0]
+                })
 
             # ===
             # Determine how long this entity stayed at each process
             if 'process_visits' in stats:
                 for process_visit in stats['process_visits']:
-                    stay_duration = \
-                        process_visit['departed_at'] - process_visit['arrived_at']
                     visited_id = process_visit['node_id']
                     if visited_id not in node_stats:
-                        node_stats[visited_id] = {}
+                        node_stats[visited_id] = {
+                            'label': raw_nodes[visited_id]['label']
+                        }
 
                     if 'stay_durations' not in node_stats[visited_id]:
-                        node_stats[visited_id]['stay_durations'] = [stay_duration]
+                        node_stats[visited_id]['stay_durations'] = [{
+                            'from': process_visit['arrived_at'],
+                            'to': process_visit['departed_at'],
+                            'length': process_visit['departed_at'] - \
+                                process_visit['arrived_at']
+                        }]
                     else:
-                        node_stats[visited_id]['stay_durations'].append(stay_duration)
+                        node_stats[visited_id]['stay_durations'].append({
+                            'from': process_visit['arrived_at'],
+                            'to': process_visit['departed_at'],
+                            'length': process_visit['departed_at'] - \
+                                process_visit['arrived_at']
+                        })
 
         # print('')
         # print('==============================')
