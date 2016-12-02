@@ -58,19 +58,17 @@ def run_oldest_sim():
                 headers=headers,
                 data=json.dumps(response_data),
                 verify=False)
-            print('Response disabled for testing')
-            print(response_data)
-            print(json.dumps(response_data))
+            # print(response_data)
+            print('all okay')
         else:
             requests.post(
                 url,
                 headers=headers,
                 data=json.dumps({'error': {'message': error_message}}),
                 verify=False)
-            print('Response disabled for testing')
-            print(error_message)
+            print('error')
 
-        cursor.execute('DELETE FROM simulations WHERE id = ?', (str(sim_id),))
+        # cursor.execute('DELETE FROM simulations WHERE id = ?', (str(sim_id),))
         conn.commit()
     conn.close()
 
