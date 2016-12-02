@@ -44,7 +44,6 @@ class Simulation(object):
             'resources': resources,
         }
         self.nodes = []
-        self.node_statistics = {}
 
     def run(self):
         """Run the simulation and respond with statistics about the run."""
@@ -167,24 +166,99 @@ class Simulation(object):
             simulation_duration = days_to_run * seconds_in_a_day
             env.run(until=simulation_duration)
 
-            for node in self.nodes:
-                if node.get_node_id() not in self.node_statistics:
-                    self.node_statistics[node.get_node_id()] = {
-                        'node_type': node.get_node_type(),
-                        'statistics': [node.get_statistics()]}
-                else:
-                    self.node_statistics[node.get_node_id()]['statistics'].append(
-                            node.get_statistics())
+            # for node in self.nodes:
+                # if node.get_node_id() not in self.node_statistics:
+                    # self.node_statistics[node.get_node_id()] = {
+                        # 'node_type': node.get_node_type(),
+                        # 'statistics': [node.get_statistics()]}
+                # else:
+                    # self.node_statistics[node.get_node_id()]['statistics'].append(
+                            # node.get_statistics())
 
             departed_entities = []
             for exit in exits:
                 departed_entities.extend(exit.get_departed_entities())
 
-            for entity in departed_entities:
-                statistics = entity.get_statistics()
-                # TODO: Generate actual statistics
-                # TODO: The return value of this method should be those newly
-                # generated statistics
-                print(statistics)
+        # TODO: Generate actual statistics
+        # TODO: The return value of this method should be those newly
+        # generated statistics
+        return self.analyze_simulation(departed_entities)
 
-        return self.node_statistics
+    def analyze_simulation(self, entities):
+        node_stats = {}
+        entity_stats = {}
+
+
+        for entity in entities:
+            stats = entity.get_statistics()
+
+            # ===
+            # Keep a record of how many times each node has been visited
+            # Source nodes
+            if stats['created_by'][0] not in node_stats:
+                node_stats[stats['created_by'][0]] = {}
+
+            if 'visited_count' not in node_stats[stats['created_by'][0]]:
+                node_stats[stats['created_by'][0]] = {'visited_count': 1}
+            else:
+                node_stats[stats['created_by'][0]]['visited_count'] += 1
+
+            # Exit nodes
+            if stats['departed_through'][0] not in node_stats:
+                node_stats[stats['departed_through'][0]] = {}
+
+            if 'visited_count' not in node_stats[stats['departed_through'][0]]:
+                node_stats[stats['departed_through'][0]] = {'visited_count': 1}
+            else:
+                node_stats[stats['departed_through'][0]]['visited_count'] += 1
+
+            # All other nodes
+            for visited_node_id in stats['visited']:
+                if visited_node_id not in node_stats:
+                    node_stats[visited_node_id] = {}
+
+                if 'visited_count' not in node_stats[visited_node_id]:
+                    node_stats[visited_node_id] = {'visited_count': 1}
+                else:
+                    node_stats[visited_node_id]['visited_count'] += 1
+
+            # ===
+            # Determine how long this entity has been alive
+            lifespan = stats['departed_at'][0] - stats['created_at'][0]
+            if 'lifespans' not in entity_stats:
+                entity_stats['lifespans'] = [lifespan]
+            else:
+                entity_stats['lifespans'].append(lifespan)
+
+            # ===
+            # Determine how long this entity stayed at each process
+            if 'process_visits' in stats:
+                for process_visit in stats['process_visits']:
+                    stay_duration = \
+                        process_visit['departed_at'] - process_visit['arrived_at']
+                    visited_id = process_visit['node_id']
+                    if visited_id not in node_stats:
+                        node_stats[visited_id] = {}
+
+                    if 'stay_durations' not in node_stats[visited_id]:
+                        node_stats[visited_id]['stay_durations'] = [stay_duration]
+                    else:
+                        node_stats[visited_id]['stay_durations'].append(stay_duration)
+
+        # print('')
+        # print('==============================')
+
+        # print('')
+        # print('nodes')
+        # for node_stat_id in node_stats:
+            # print(node_stat_id, [node_stats[node_stat_id]])
+
+        # print('')
+        # print('entities')
+        # for entity_stat_id in entity_stats:
+            # print(entity_stat_id, [entity_stats[entity_stat_id]])
+
+        return {
+            'nodes': node_stats,
+            'entities': entity_stats,
+        }
